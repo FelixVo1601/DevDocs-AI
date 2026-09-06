@@ -130,11 +130,13 @@ python -m venv .venv
 # Windows: .\.venv\Scripts\Activate.ps1
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
 - Health: http://127.0.0.1:8001/health → `{"status":"ok"}`
 - DB ping: http://127.0.0.1:8001/db/ping → `{"database":"ok"}`
+- Schema: http://127.0.0.1:8001/db/schema → `{"users_and_sessions":true}`
 - OpenAPI: http://127.0.0.1:8001/docs
 
 Use [.env.example](.env.example) as the configuration contract. `DATABASE_URL` must match the Compose Postgres credentials.
