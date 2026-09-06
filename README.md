@@ -94,7 +94,7 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 ```text
 DevDocs-AI/
 ├── frontend/          # SvelteKit + TypeScript (npm run dev)
-├── backend/           # FastAPI (placeholder — scaffold later)
+├── backend/           # FastAPI (uvicorn; GET /health)
 ├── docs/              # MVP, architecture, decisions
 ├── .env.example       # Env template (copy to .env; never commit .env)
 ├── .gitignore
@@ -115,7 +115,21 @@ npm run dev
 
 Open `http://localhost:5173` — you should see **DevDocs AI**.
 
-4. **Backend / database:** not scaffolded yet. Later: `docker compose up` for PostgreSQL, then run FastAPI from `backend/`.
+4. **Backend (ready now):**
+
+```bash
+cd backend
+python -m venv .venv
+# Windows: .\.venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+- Health: http://localhost:8000/health → `{"status":"ok"}`
+- OpenAPI: http://localhost:8000/docs
+
+5. **Database:** not wired yet. Later: `docker compose up` for PostgreSQL.
 
 Use [.env.example](.env.example) as the configuration contract.
 
