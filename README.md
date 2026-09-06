@@ -44,34 +44,43 @@ See [docs/MVP.md](docs/MVP.md) for the full Version 1 scope and explicit out-of-
 
 | Layer | Choice | Role |
 |-------|--------|------|
-| Frontend | Next.js (React, TypeScript) | Auth UI, repo selection, Q&A experience |
-| Backend / API | Next.js Route Handlers or a Node.js API | Auth, GitHub integration, indexing orchestration, RAG endpoints |
+| Frontend | SvelteKit | Auth UI, repo selection, Q&A experience |
+| Backend / API | Python + FastAPI | Auth, GitHub integration, indexing orchestration, RAG endpoints |
 | Database | PostgreSQL | Users, sessions, repository metadata |
-| Vector store | pgvector (or equivalent) | Embedding storage and similarity search |
-| Auth | Session-based auth (e.g. Auth.js) + GitHub OAuth | App login and GitHub access |
-| LLM / embeddings | OpenAI-compatible API (configurable) | Embeddings and answer generation |
+| Vector store | pgvector (later) | Embedding storage and similarity search |
+| Auth | App auth + GitHub OAuth | Login and GitHub access |
+| LLM / embeddings | OpenAI-compatible API (configurable; post–Week 1) | Embeddings and answer generation |
 | Source control API | GitHub API | List repos, fetch repository content |
+| Local env | Docker Compose | Consistent frontend, backend, and database |
 
-Exact library versions will be locked in as implementation begins; this table is the intended MVP stack.
+See [docs/DECISIONS.md](docs/DECISIONS.md) for why these were chosen. Exact library versions will be locked in as implementation begins.
 
 ## High-level architecture
 
+Week 1 skeleton (AI pipeline not implemented yet):
+
 ```text
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Web client │────▶│  Application API │────▶│  PostgreSQL     │
-│  (Next.js)  │     │  (auth, RAG,     │     │  + pgvector     │
-└─────────────┘     │   repo jobs)     │     └─────────────────┘
-                    └────────┬─────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              ▼              ▼              ▼
-        ┌──────────┐  ┌────────────┐  ┌──────────┐
-        │  GitHub  │  │ Embedding  │  │   LLM    │
-        │   API    │  │   model    │  │  (RAG)   │
-        └──────────┘  └────────────┘  └──────────┘
+                    ┌───────────────┐
+                    │    GitHub     │
+                    └───────┬───────┘
+┌──────────────┐            │
+│  SvelteKit   │◄───────────┤
+│   Frontend   │            │
+└──────┬───────┘            │
+       │ HTTP/REST          │
+       ▼                    ▼
+┌─────────────────────────────────┐
+│            FastAPI              │
+└──────────────┬──────────────────┘
+               ▼
+       ┌───────────────┐
+       │  PostgreSQL   │
+       └───────────────┘
 ```
 
-**Flow (happy path):**
+Full design (including the later ingestion → embed → retrieve → LLM path) is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+**Happy path (target product):**
 
 1. User registers/logs in and connects GitHub.
 2. User selects a repository; the app retrieves and filters source files.
