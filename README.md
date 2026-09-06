@@ -93,7 +93,7 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 
 ```text
 DevDocs-AI/
-├── frontend/          # SvelteKit (placeholder — scaffold later)
+├── frontend/          # SvelteKit + TypeScript (npm run dev)
 ├── backend/           # FastAPI (placeholder — scaffold later)
 ├── docs/              # MVP, architecture, decisions
 ├── .env.example       # Env template (copy to .env; never commit .env)
@@ -101,17 +101,23 @@ DevDocs-AI/
 └── README.md
 ```
 
-## How to run later
-
-Apps are not scaffolded yet. When frontend, backend, and Compose are in place, the flow will look like this:
+## How to run
 
 1. **Clone and enter the repo**
-2. **Copy env template:** `cp .env.example .env` (or copy on Windows), then fill in secrets
-3. **Start dependencies:** `docker compose up` (PostgreSQL, and later full stack services)
-4. **Backend:** from `backend/`, create a venv, install deps, run Uvicorn (e.g. `http://localhost:8000`)
-5. **Frontend:** from `frontend/`, install npm deps, run the SvelteKit dev server (e.g. `http://localhost:5173`)
+2. **Copy env template:** `cp .env.example .env` (or copy on Windows), then fill in secrets as needed
+3. **Frontend (ready now):**
 
-Exact commands will be added once each app is scaffolded. Until then, use [.env.example](.env.example) as the contract for required configuration.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173` — you should see **DevDocs AI**.
+
+4. **Backend / database:** not scaffolded yet. Later: `docker compose up` for PostgreSQL, then run FastAPI from `backend/`.
+
+Use [.env.example](.env.example) as the configuration contract.
 
 ## Development roadmap
 

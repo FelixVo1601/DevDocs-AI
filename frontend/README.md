@@ -1,7 +1,15 @@
 # Frontend (SvelteKit)
 
-Placeholder for the SvelteKit app. Full scaffolding comes in a later task.
+SvelteKit + TypeScript app for DevDocs AI.
 
-Intended role: auth UI, GitHub connection, repository selection, and (later) Q&A with citations.
+## Run locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the URL Vite prints (usually `http://localhost:5173`). You should see a page titled **DevDocs AI**.
 
 See the repo root [README](../README.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
