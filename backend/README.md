@@ -52,6 +52,31 @@ If port 8000 is blocked on Windows, keep using `8001`.
 - Schema: http://127.0.0.1:8001/db/schema → `{"users_and_sessions":true}`
 - OpenAPI docs: http://127.0.0.1:8001/docs
 
+## Auth API (session cookies)
+
+Auth uses **HttpOnly session cookies** (not JWT). See [docs/DECISIONS.md](../docs/DECISIONS.md).
+
+```powershell
+# Register
+curl.exe -s -X POST http://127.0.0.1:8001/auth/register `
+  -H "Content-Type: application/json" `
+  -d "{\"email\":\"demo@example.com\",\"password\":\"password123\"}"
+
+# Login (saves cookie)
+curl.exe -s -c cookies.txt -X POST http://127.0.0.1:8001/auth/login `
+  -H "Content-Type: application/json" `
+  -d "{\"email\":\"demo@example.com\",\"password\":\"password123\"}"
+
+# Protected check
+curl.exe -s -b cookies.txt http://127.0.0.1:8001/auth/me
+
+# Logout
+curl.exe -s -b cookies.txt -c cookies.txt -X POST http://127.0.0.1:8001/auth/logout
+
+# Should fail with 401
+curl.exe -s -b cookies.txt http://127.0.0.1:8001/auth/me
+```
+
 ## Migrations
 
 Apply schema on an empty database:

@@ -89,6 +89,24 @@ Keeps clear boundaries: UI concerns in SvelteKit, domain/API/AI concerns in Pyth
 
 ---
 
+## Decision: Session cookies (not JWT)
+
+**Choice:** Opaque server-side sessions stored in PostgreSQL, delivered via an `HttpOnly` cookie (`devdocs_session`)
+
+**Reason:**
+
+Day 6 already introduced a `sessions` table (`token_hash`, `expires_at`, `revoked_at`). Cookie sessions reuse that model directly, support immediate logout/revocation, and avoid JWT refresh/secret-rotation complexity for the MVP.
+
+**Implications:**
+
+- Passwords are hashed with bcrypt; only a SHA-256 hash of the session token is stored.
+- `POST /auth/login` sets the cookie; `POST /auth/logout` revokes the row and clears the cookie.
+- Protected routes (e.g. `GET /auth/me`) require a valid, non-revoked, non-expired session.
+- CORS must allow credentials when the SvelteKit frontend talks to FastAPI.
+- JWT remains an option later if we need mobile/third-party API clients without cookies.
+
+---
+
 ## Decision: Defer the AI pipeline past Week 1
 
 **Choice:** Design the full ingestion → embed → retrieve → LLM flow in architecture docs; implement only the non-AI skeleton in Week 1

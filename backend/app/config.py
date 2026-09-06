@@ -13,6 +13,16 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql://devdocs:change_me@localhost:5432/devdocs"
+    environment: str = "development"
+    cors_origins: str = "http://localhost:5173"
+
+    session_cookie_name: str = "devdocs_session"
+    session_expire_minutes: int = 60 * 24 * 7  # 7 days
+    cookie_secure: bool = False
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache
