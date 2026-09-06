@@ -1,0 +1,51 @@
+# Dependencies & build
+node_modules/
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+frontend/dist/
+frontend/.vite/
+
+# Python
+backend/.venv/
+backend/venv/
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*.egg-info/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+*.py[cod]
+__pycache__/
+.venv/
+venv/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs & coverage
+*.log
+coverage/
+htmlcov/
+.coverage
+.nyc_output/
+
+# Docker / local data
+postgres-data/
+*.sqlite3
+
+# Misc
+*.pem
+.cache/
+tmp/
+temp/

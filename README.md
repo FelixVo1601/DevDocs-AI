@@ -89,11 +89,36 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 5. The LLM generates an answer grounded in those chunks, with citations.
 6. User inspects cited source in the UI.
 
+## Repository layout
+
+```text
+DevDocs-AI/
+├── frontend/          # SvelteKit (placeholder — scaffold later)
+├── backend/           # FastAPI (placeholder — scaffold later)
+├── docs/              # MVP, architecture, decisions
+├── .env.example       # Env template (copy to .env; never commit .env)
+├── .gitignore
+└── README.md
+```
+
+## How to run later
+
+Apps are not scaffolded yet. When frontend, backend, and Compose are in place, the flow will look like this:
+
+1. **Clone and enter the repo**
+2. **Copy env template:** `cp .env.example .env` (or copy on Windows), then fill in secrets
+3. **Start dependencies:** `docker compose up` (PostgreSQL, and later full stack services)
+4. **Backend:** from `backend/`, create a venv, install deps, run Uvicorn (e.g. `http://localhost:8000`)
+5. **Frontend:** from `frontend/`, install npm deps, run the SvelteKit dev server (e.g. `http://localhost:5173`)
+
+Exact commands will be added once each app is scaffolded. Until then, use [.env.example](.env.example) as the contract for required configuration.
+
 ## Development roadmap
 
 | Phase | Focus |
 |-------|--------|
 | **Day 1** | Product requirements, GitHub repo, README, MVP definition |
+| **Day 2** | Architecture docs, monorepo layout, env template |
 | **Day 2+** | Project scaffolding, auth, database schema |
 | **Next** | GitHub OAuth, repository listing and selection |
 | **Next** | Ingestion pipeline (fetch → filter → chunk → embed → store) |
