@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI
 
+from app.db import ping_database
+
 app = FastAPI(
     title="DevDocs AI",
     description="AI-powered developer knowledge and documentation assistant API",
@@ -13,3 +15,9 @@ app = FastAPI(
 def health() -> dict[str, str]:
     """Liveness check for local development and later orchestration."""
     return {"status": "ok"}
+
+
+@app.get("/db/ping")
+def db_ping() -> dict[str, str]:
+    """Verify the API can reach PostgreSQL using DATABASE_URL."""
+    return {"database": ping_database()}

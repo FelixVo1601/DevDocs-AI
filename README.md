@@ -94,8 +94,9 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 ```text
 DevDocs-AI/
 ├── frontend/          # SvelteKit + TypeScript (npm run dev)
-├── backend/           # FastAPI (uvicorn; GET /health)
+├── backend/           # FastAPI (uvicorn; /health, /db/ping)
 ├── docs/              # MVP, architecture, decisions
+├── docker-compose.yml # PostgreSQL for local development
 ├── .env.example       # Env template (copy to .env; never commit .env)
 ├── .gitignore
 └── README.md
@@ -104,8 +105,14 @@ DevDocs-AI/
 ## How to run
 
 1. **Clone and enter the repo**
-2. **Copy env template:** `cp .env.example .env` (or copy on Windows), then fill in secrets as needed
-3. **Frontend (ready now):**
+2. **Copy env template:** `copy .env.example .env` (Windows) or `cp .env.example .env`, then adjust secrets if needed
+3. **Database:**
+
+```bash
+docker compose up -d db
+```
+
+4. **Frontend:**
 
 ```bash
 cd frontend
@@ -115,7 +122,7 @@ npm run dev
 
 Open `http://localhost:5173` — you should see **DevDocs AI**.
 
-4. **Backend (ready now):**
+5. **Backend:**
 
 ```bash
 cd backend
@@ -123,15 +130,14 @@ python -m venv .venv
 # Windows: .\.venv\Scripts\Activate.ps1
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
-- Health: http://localhost:8000/health → `{"status":"ok"}`
-- OpenAPI: http://localhost:8000/docs
+- Health: http://127.0.0.1:8001/health → `{"status":"ok"}`
+- DB ping: http://127.0.0.1:8001/db/ping → `{"database":"ok"}`
+- OpenAPI: http://127.0.0.1:8001/docs
 
-5. **Database:** not wired yet. Later: `docker compose up` for PostgreSQL.
-
-Use [.env.example](.env.example) as the configuration contract.
+Use [.env.example](.env.example) as the configuration contract. `DATABASE_URL` must match the Compose Postgres credentials.
 
 ## Development roadmap
 
