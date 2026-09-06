@@ -21,3 +21,11 @@ def health() -> dict[str, str]:
 def db_ping() -> dict[str, str]:
     """Verify the API can reach PostgreSQL using DATABASE_URL."""
     return {"database": ping_database()}
+
+
+@app.get("/db/schema")
+def db_schema() -> dict[str, bool]:
+    """Confirm auth tables exist after migrations (no UI yet)."""
+    from app.db import schema_ready
+
+    return {"users_and_sessions": schema_ready()}

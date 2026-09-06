@@ -6,11 +6,14 @@ Python FastAPI API for DevDocs AI.
 
 ```text
 backend/
+├── alembic/                 # Migrations
+│   └── versions/
+├── alembic.ini
 ├── app/
-│   ├── __init__.py
-│   ├── config.py    # DATABASE_URL from env
-│   ├── db.py        # Postgres ping helper
-│   └── main.py      # FastAPI app + /health + /db/ping
+│   ├── config.py            # DATABASE_URL from env
+│   ├── db.py                # Engine + ping helpers
+│   ├── main.py              # FastAPI routes
+│   └── models/              # SQLAlchemy users + sessions
 └── requirements.txt
 ```
 
@@ -38,6 +41,7 @@ Activate the venv:
 
 ```bash
 pip install -r requirements.txt
+alembic upgrade head
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
@@ -45,6 +49,26 @@ If port 8000 is blocked on Windows, keep using `8001`.
 
 - Health: http://127.0.0.1:8001/health → `{"status":"ok"}`
 - DB ping: http://127.0.0.1:8001/db/ping → `{"database":"ok"}`
+- Schema: http://127.0.0.1:8001/db/schema → `{"users_and_sessions":true}`
 - OpenAPI docs: http://127.0.0.1:8001/docs
+
+## Migrations
+
+Apply schema on an empty database:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+Fresh Compose volume (destroys data):
+
+```bash
+# from repo root
+docker compose down -v
+docker compose up -d db
+cd backend
+alembic upgrade head
+```
 
 See the repo root [README](../README.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
