@@ -1,12 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { ApiError } from '$lib/api';
 	import { auth } from '$lib/auth.svelte';
+	import { safeNextPath } from '$lib/navigation';
 
 	let email = $state('');
 	let password = $state('');
 	let error = $state<string | null>(null);
 	let submitting = $state(false);
+
+	$effect(() => {
+		if (auth.ready && !auth.loading && auth.user) {
+			void goto(safeNextPath(page.url.searchParams.get('next')));
+		}
+	});
 
 	async function onSubmit(event: Event) {
 		event.preventDefault();
@@ -14,7 +22,7 @@
 		submitting = true;
 		try {
 			await auth.login(email.trim(), password);
-			await goto('/');
+			await goto(safeNextPath(page.url.searchParams.get('next')));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Login failed.';
 		} finally {

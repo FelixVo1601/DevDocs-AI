@@ -18,8 +18,9 @@ Set `PUBLIC_API_URL` to your FastAPI base URL (default `http://localhost:8001`).
 ### Auth pages
 
 - `/register` — create account (then auto-login)
-- `/login` — sign in
+- `/login` — sign in (supports `?next=/app`)
+- `/app` — **protected**; redirects to `/login` when signed out
 - Header **Log out** — clears the session cookie
-- Home shows signed-in email; refresh keeps the session via `GET /auth/me`
+- Shared client: `src/lib/api.ts` (`apiRequest` / `apiGet` / `apiPost` with credentials)
 
 See the repo root [README](../README.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
