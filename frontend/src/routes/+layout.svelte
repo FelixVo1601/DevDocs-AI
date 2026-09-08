@@ -1,6 +1,7 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import { auth } from '$lib/auth.svelte';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();
@@ -8,6 +9,12 @@
 	onMount(() => {
 		void auth.refresh();
 	});
+
+	async function onLogout(event: Event) {
+		event.preventDefault();
+		await auth.logout();
+		await goto('/');
+	}
 </script>
 
 <svelte:head>
@@ -22,14 +29,9 @@
 			{#if auth.loading}
 				<span class="muted">Checking session…</span>
 			{:else if auth.user}
+				<a href="/app">App</a>
 				<span class="email">{auth.user.email}</span>
-				<form
-					method="POST"
-					onsubmit={(event) => {
-						event.preventDefault();
-						void auth.logout();
-					}}
-				>
+				<form method="POST" onsubmit={onLogout}>
 					<button type="submit">Log out</button>
 				</form>
 			{:else}

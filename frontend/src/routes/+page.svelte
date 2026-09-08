@@ -8,7 +8,9 @@
 		<p>Checking session…</p>
 	{:else if auth.user}
 		<p>Signed in as <strong>{auth.user.email}</strong>.</p>
-		<p class="hint">Refresh the page — your session should stay.</p>
+		<p class="actions">
+			<a href="/app">Open app</a>
+		</p>
 	{:else}
 		<p>Ask natural-language questions about a GitHub repository.</p>
 		<p class="actions">
@@ -37,11 +39,6 @@
 		margin: 0.5rem 0;
 		color: #445;
 		line-height: 1.5;
-	}
-
-	.hint {
-		font-size: 0.95rem;
-		color: #667;
 	}
 
 	.actions a {

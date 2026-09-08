@@ -14,9 +14,10 @@ export class ApiError extends Error {
 	}
 }
 
-function apiBase(): string {
+/** Shared API base URL (FastAPI). */
+export function getApiBase(): string {
 	const base = import.meta.env.PUBLIC_API_URL as string | undefined;
-	return (base?.replace(/\/$/, '') || 'http://localhost:8001');
+	return base?.replace(/\/$/, '') || 'http://localhost:8001';
 }
 
 async function parseError(response: Response): Promise<string> {
@@ -24,7 +25,9 @@ async function parseError(response: Response): Promise<string> {
 		const data = await response.json();
 		if (typeof data?.detail === 'string') return data.detail;
 		if (Array.isArray(data?.detail)) {
-			return data.detail.map((item: { msg?: string }) => item.msg ?? 'Invalid input').join(', ');
+			return data.detail
+				.map((item: { msg?: string }) => item.msg ?? 'Invalid input')
+				.join(', ');
 		}
 		return response.statusText || 'Request failed';
 	} catch {
@@ -32,16 +35,17 @@ async function parseError(response: Response): Promise<string> {
 	}
 }
 
-export async function apiRequest<T>(
-	path: string,
-	init: RequestInit = {}
-): Promise<T> {
+/**
+ * Shared API client: JSON fetch with credentials (session cookie).
+ * Use this for all backend calls from the frontend.
+ */
+export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
 	const headers = new Headers(init.headers);
 	if (init.body && !headers.has('Content-Type')) {
 		headers.set('Content-Type', 'application/json');
 	}
 
-	const response = await fetch(`${apiBase()}${path}`, {
+	const response = await fetch(`${getApiBase()}${path}`, {
 		...init,
 		headers,
 		credentials: 'include'
@@ -56,4 +60,15 @@ export async function apiRequest<T>(
 	}
 
 	return (await response.json()) as T;
+}
+
+export function apiGet<T>(path: string): Promise<T> {
+	return apiRequest<T>(path, { method: 'GET' });
+}
+
+export function apiPost<T>(path: string, body?: unknown): Promise<T> {
+	return apiRequest<T>(path, {
+		method: 'POST',
+		body: body === undefined ? undefined : JSON.stringify(body)
+	});
 }
