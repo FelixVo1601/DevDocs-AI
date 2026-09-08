@@ -6,10 +6,20 @@ SvelteKit + TypeScript app for DevDocs AI.
 
 ```bash
 cd frontend
+copy .env.example .env   # Windows; or cp .env.example .env
 npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually `http://localhost:5173`). You should see a page titled **DevDocs AI**.
+Open `http://localhost:5173`.
+
+Set `PUBLIC_API_URL` to your FastAPI base URL (default `http://localhost:8001`). The backend must be running, and CORS must allow `http://localhost:5173`.
+
+### Auth pages
+
+- `/register` — create account (then auto-login)
+- `/login` — sign in
+- Header **Log out** — clears the session cookie
+- Home shows signed-in email; refresh keeps the session via `GET /auth/me`
 
 See the repo root [README](../README.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
