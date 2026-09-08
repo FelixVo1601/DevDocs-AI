@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://devdocs:change_me@localhost:5432/devdocs"
     environment: str = "development"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     session_cookie_name: str = "devdocs_session"
     session_expire_minutes: int = 60 * 24 * 7  # 7 days

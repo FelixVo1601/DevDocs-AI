@@ -120,7 +120,8 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — you should see **DevDocs AI**.
+Open `http://localhost:5173` — home, `/register`, and `/login` pages.
+Copy `frontend/.env.example` to `frontend/.env` so `PUBLIC_API_URL` points at the API (default `http://localhost:8001`).
 
 5. **Backend:**
 
