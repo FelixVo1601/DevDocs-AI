@@ -1,14 +1,22 @@
-"""GitHub repository listing for connected users."""
+"""GitHub repository listing and selection for connected users."""
 
 from __future__ import annotations
 
 import logging
+from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status
+from sqlalchemy import select
 
 from app.deps import CurrentUser, DbSession
-from app.schemas.github import GitHubRepoListResponse
-from app.services.github_api import list_user_repositories
+from app.models import SelectedRepository
+from app.schemas.github import (
+    GitHubRepoListResponse,
+    SelectedRepositoryEnvelope,
+    SelectedRepositoryResponse,
+    SelectRepositoryRequest,
+)
+from app.services.github_api import get_repository_by_id, list_user_repositories
 from app.services.github_oauth import GitHubOAuthError
 from app.services.github_tokens import get_github_access_token
 
@@ -36,3 +44,68 @@ def list_repos(current_user: CurrentUser, db: DbSession) -> GitHubRepoListRespon
         access_token = ""
 
     return GitHubRepoListResponse(repos=repos, count=len(repos))
+
+
+@router.get("/selected-repo", response_model=SelectedRepositoryEnvelope)
+def get_selected_repo(
+    current_user: CurrentUser, db: DbSession
+) -> SelectedRepositoryEnvelope:
+    row = db.scalar(
+        select(SelectedRepository).where(SelectedRepository.user_id == current_user.id)
+    )
+    if row is None:
+        return SelectedRepositoryEnvelope(selected=None)
+    return SelectedRepositoryEnvelope(
+        selected=SelectedRepositoryResponse.model_validate(row)
+    )
+
+
+@router.put("/selected-repo", response_model=SelectedRepositoryEnvelope)
+def select_repo(
+    payload: SelectRepositoryRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SelectedRepositoryEnvelope:
+    """Persist one selected repository per user (verified via GitHub API)."""
+    access_token = get_github_access_token(db, current_user.id)
+    try:
+        repo = get_repository_by_id(access_token, payload.github_repo_id)
+    except GitHubOAuthError as exc:
+        logger.error(
+            "Failed to verify repo %s for user_id=%s: %s",
+            payload.github_repo_id,
+            current_user.id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    finally:
+        access_token = ""
+
+    row = db.scalar(
+        select(SelectedRepository).where(SelectedRepository.user_id == current_user.id)
+    )
+    if row is None:
+        row = SelectedRepository(id=uuid4(), user_id=current_user.id)
+        db.add(row)
+
+    row.github_repo_id = repo["id"]
+    row.name = repo["name"]
+    row.full_name = repo["full_name"]
+    row.private = repo["private"]
+    row.html_url = repo["html_url"]
+    row.default_branch = repo["default_branch"]
+    row.description = repo.get("description")
+    db.commit()
+    db.refresh(row)
+
+    logger.info(
+        "Selected repo user_id=%s full_name=%s",
+        current_user.id,
+        row.full_name,
+    )
+    return SelectedRepositoryEnvelope(
+        selected=SelectedRepositoryResponse.model_validate(row)
+    )

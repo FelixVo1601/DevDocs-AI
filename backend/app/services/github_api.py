@@ -62,19 +62,7 @@ def list_user_repositories(access_token: str) -> list[dict[str, Any]]:
                     break
 
                 for item in batch:
-                    repos.append(
-                        {
-                            "id": int(item["id"]),
-                            "name": str(item["name"]),
-                            "full_name": str(item["full_name"]),
-                            "private": bool(item.get("private", False)),
-                            "html_url": str(item.get("html_url") or ""),
-                            "description": item.get("description"),
-                            "default_branch": str(item.get("default_branch") or "main"),
-                            "language": item.get("language"),
-                            "updated_at": item.get("updated_at"),
-                        }
-                    )
+                    repos.append(_normalize_repo(item))
 
                 if len(batch) < 100:
                     break
@@ -84,3 +72,41 @@ def list_user_repositories(access_token: str) -> list[dict[str, Any]]:
 
     logger.info("Listed %s GitHub repositories for connected user", len(repos))
     return repos
+
+
+def get_repository_by_id(access_token: str, github_repo_id: int) -> dict[str, Any]:
+    """Fetch a single repository the token can access (verifies selection)."""
+    url = f"https://api.github.com/repositories/{github_repo_id}"
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(url, headers=_auth_headers(access_token))
+    except httpx.HTTPError as exc:
+        logger.exception("GitHub repository request failed")
+        raise GitHubOAuthError("Could not reach GitHub repository endpoint") from exc
+
+    if response.status_code == 404:
+        raise GitHubOAuthError("Repository not found or not accessible")
+    if response.status_code == 401:
+        raise GitHubOAuthError("GitHub token is invalid or expired")
+    if response.status_code >= 400:
+        logger.error("GitHub repository endpoint returned HTTP %s", response.status_code)
+        raise GitHubOAuthError("Could not load GitHub repository")
+
+    payload = response.json()
+    if not isinstance(payload, dict) or "id" not in payload:
+        raise GitHubOAuthError("Unexpected GitHub repository response")
+    return _normalize_repo(payload)
+
+
+def _normalize_repo(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": int(item["id"]),
+        "name": str(item["name"]),
+        "full_name": str(item["full_name"]),
+        "private": bool(item.get("private", False)),
+        "html_url": str(item.get("html_url") or ""),
+        "description": item.get("description"),
+        "default_branch": str(item.get("default_branch") or "main"),
+        "language": item.get("language"),
+        "updated_at": item.get("updated_at"),
+    }

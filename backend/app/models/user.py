@@ -13,6 +13,7 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.github_account import GitHubAccount
+    from app.models.selected_repository import SelectedRepository
     from app.models.session import Session
 
 
@@ -32,6 +33,11 @@ class User(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
     github_account: Mapped[GitHubAccount | None] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+    selected_repository: Mapped[SelectedRepository | None] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,

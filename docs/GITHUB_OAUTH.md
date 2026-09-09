@@ -51,6 +51,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 | GET | `/auth/github/callback` | State (+ cookie if present) | Exchange code, store encrypted token |
 | GET | `/auth/github/connection` | Session cookie | Connection metadata only (no token) |
 | GET | `/github/repos` | Session cookie + GitHub connected | List public + accessible private repos |
+| GET | `/github/selected-repo` | Session cookie | Current selection (or `null`) |
+| PUT | `/github/selected-repo` | Session cookie + GitHub connected | Persist one selected repo per user |
 
 ## Security notes
 
