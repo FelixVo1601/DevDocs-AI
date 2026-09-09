@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     session_expire_minutes: int = 60 * 24 * 7  # 7 days
     cookie_secure: bool = False
 
+    # Used for OAuth state signing + Fernet key derivation. Required for GitHub OAuth.
+    secret_key: str = "dev-only-change-me-in-production"
+
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    github_redirect_uri: str = "http://localhost:8001/auth/github/callback"
+    github_oauth_scopes: str = "read:user repo"
+
     @property
     def is_development(self) -> bool:
         return self.environment.lower() in {"development", "dev", "local"}

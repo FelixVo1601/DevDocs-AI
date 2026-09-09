@@ -13,7 +13,9 @@ backend/
 │   ├── config.py            # DATABASE_URL from env
 │   ├── db.py                # Engine + ping helpers
 │   ├── main.py              # FastAPI routes
-│   └── models/              # SQLAlchemy users + sessions
+│   ├── models/              # users, sessions, github_accounts
+│   ├── routers/             # auth + github oauth
+│   └── services/            # GitHub OAuth helpers
 └── requirements.txt
 ```
 
@@ -76,6 +78,15 @@ curl.exe -s -b cookies.txt -c cookies.txt -X POST http://127.0.0.1:8001/auth/log
 # Should fail with 401
 curl.exe -s -b cookies.txt http://127.0.0.1:8001/auth/me
 ```
+
+## GitHub OAuth
+
+See [docs/GITHUB_OAUTH.md](../docs/GITHUB_OAUTH.md). After configuring `GITHUB_CLIENT_*` and `SECRET_KEY`:
+
+1. Log in (session cookie).
+2. Open `http://localhost:8001/auth/github/start` in the browser.
+3. Authorize → redirect to `/app?github=connected`.
+4. `GET /auth/github/connection` returns login metadata (never the token).
 
 ## Migrations
 
