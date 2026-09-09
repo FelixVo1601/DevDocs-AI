@@ -88,14 +88,19 @@ See [docs/GITHUB_OAUTH.md](../docs/GITHUB_OAUTH.md). After configuring `GITHUB_C
 3. Authorize → redirect to `/app?github=connected`.
 4. `GET /auth/github/connection` returns login metadata (never the token).
 
-### List repositories
+### List / select repositories
 
 ```powershell
-# After login + GitHub connect (cookies.txt from login)
 curl.exe -s -b cookies.txt http://localhost:8001/github/repos
+curl.exe -s -b cookies.txt http://localhost:8001/github/selected-repo
+curl.exe -s -b cookies.txt -X PUT http://localhost:8001/github/selected-repo `
+  -H "Content-Type: application/json" `
+  --data-binary "@repo.json"
 ```
 
-Returns `{ "repos": [...], "count": N }` for public and accessible private repos.
+`repo.json` example: `{"github_repo_id":123456}`
+
+Selection is stored per user in Postgres and survives refresh. On `/app`, pick a repo from the list after connecting GitHub.
 
 ## Migrations
 
