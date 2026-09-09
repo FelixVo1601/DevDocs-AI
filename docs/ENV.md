@@ -25,6 +25,11 @@ The backend loads `.env` from `backend/` **or** the repo root (`../.env`).
 | `BACKEND_HOST` / `BACKEND_PORT` | Docs / scripts | Local uvicorn bind (default `127.0.0.1:8001`) |
 | `DATABASE_URL` | Backend | SQLAlchemy / Alembic / psycopg |
 | `POSTGRES_*` | Docker Compose | Postgres container credentials |
+| `SECRET_KEY` | Backend | Signs OAuth `state`; derives Fernet key for GitHub tokens |
+| `GITHUB_CLIENT_ID` | Backend | GitHub OAuth App client id |
+| `GITHUB_CLIENT_SECRET` | Backend | GitHub OAuth App secret (never log) |
+| `GITHUB_REDIRECT_URI` | Backend | Must match the OAuth App callback URL |
+| `GITHUB_OAUTH_SCOPES` | Backend | Default `read:user repo` |
 | `SESSION_COOKIE_NAME` | Backend | Auth cookie name (`devdocs_session`) |
 | `SESSION_EXPIRE_MINUTES` | Backend | Session lifetime |
 | `COOKIE_SECURE` | Backend | Set `true` only on HTTPS |
@@ -66,3 +71,5 @@ PUBLIC_API_URL=http://localhost:8001
 ```
 
 SvelteKit only exposes env vars prefixed with `PUBLIC_` to the browser.
+
+GitHub OAuth setup steps: [GITHUB_OAUTH.md](GITHUB_OAUTH.md).

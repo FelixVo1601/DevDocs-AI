@@ -108,6 +108,22 @@ Day 6 already introduced a `sessions` table (`token_hash`, `expires_at`, `revoke
 
 ---
 
+## Decision: GitHub tokens encrypted at rest
+
+**Choice:** Store GitHub OAuth access tokens as Fernet ciphertext in `github_accounts.access_token_encrypted`, keyed from `SECRET_KEY`
+
+**Reason:**
+
+The token can access the user’s repositories. Keeping plaintext in Postgres increases blast radius on DB leaks. Fernet gives authenticated encryption without standing up a separate KMS for the MVP.
+
+**Implications:**
+
+- `SECRET_KEY` is required for GitHub OAuth; changing it invalidates stored tokens (users reconnect).
+- API responses and logs must never include the raw token or `GITHUB_CLIENT_SECRET`.
+- Status endpoint returns only `github_login` / `github_user_id` / `scope`.
+
+---
+
 ## Decision: Defer the AI pipeline past Week 1
 
 **Choice:** Design the full ingestion → embed → retrieve → LLM flow in architecture docs; implement only the non-AI skeleton in Week 1

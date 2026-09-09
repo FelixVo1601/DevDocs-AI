@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.github_account import GitHubAccount
     from app.models.session import Session
 
 
@@ -29,4 +30,9 @@ class User(Base, TimestampMixin):
     sessions: Mapped[list[Session]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    github_account: Mapped[GitHubAccount | None] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
     )
