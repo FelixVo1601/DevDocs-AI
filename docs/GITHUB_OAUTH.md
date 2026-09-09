@@ -35,19 +35,13 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 
 ## 4. Complete the flow (logged-in browser session)
 
-1. Register/login via the UI (or API) so you have the `devdocs_session` cookie for `localhost:8001`.
-2. In the **same browser**, open:
-
-   `http://localhost:8001/auth/github/start`
-
-   (cookie must be sent — use `localhost`, not a mix of hosts.)
+1. Register/login at `http://localhost:5173`.
+2. Open **App** → click **Connect GitHub** (or visit `http://localhost:8001/auth/github/start` with your session cookie).
 3. Authorize the GitHub App.
-4. You are redirected to `http://localhost:5173/app?github=connected`.
-5. Check status (with session cookie):
+4. You return to `http://localhost:5173/app` with connected status (login shown).
+5. Optional API check:
 
    `GET http://localhost:8001/auth/github/connection`
-
-   Example: `{"connected":true,"github_user_id":123,"github_login":"you","scope":"read:user,repo"}`
 
 ## Endpoints
 

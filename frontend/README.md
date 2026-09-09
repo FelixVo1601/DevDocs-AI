@@ -19,7 +19,7 @@ Set `PUBLIC_API_URL` to your FastAPI base URL (default `http://localhost:8001`).
 
 - `/register` — create account (then auto-login)
 - `/login` — sign in (supports `?next=/app`)
-- `/app` — **protected**; redirects to `/login` when signed out
+- `/app` — **protected**; Connect GitHub + connection status; redirects to `/login` when signed out
 - Header **Log out** — clears the session cookie
 - Shared client: `src/lib/api.ts` (`apiRequest` / `apiGet` / `apiPost` with credentials)
 
