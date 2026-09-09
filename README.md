@@ -172,7 +172,9 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Days 3–9** | Frontend/backend scaffold, Postgres, auth API + UI, protected `/app` |
 | **Day 10** | CORS, env docs, local DX scripts |
 | **Day 11** | GitHub OAuth backend (encrypted token storage) |
-| **Next** | GitHub OAuth UI, repository listing and selection |
+| **Day 12** | GitHub connect UI |
+| **Day 13** | List repositories API |
+| **Next** | Repository selection UI |
 | **Next** | Ingestion pipeline (fetch → filter → chunk → embed → store) |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
