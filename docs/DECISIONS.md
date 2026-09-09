@@ -102,7 +102,8 @@ Day 6 already introduced a `sessions` table (`token_hash`, `expires_at`, `revoke
 - Passwords are hashed with bcrypt; only a SHA-256 hash of the session token is stored.
 - `POST /auth/login` sets the cookie; `POST /auth/logout` revokes the row and clears the cookie.
 - Protected routes (e.g. `GET /auth/me`) require a valid, non-revoked, non-expired session.
-- CORS must allow credentials when the SvelteKit frontend talks to FastAPI.
+- CORS must allow credentials when the SvelteKit frontend talks to FastAPI (`allow_credentials=True` + explicit origins / dev localhost regex). See [ENV.md](ENV.md).
+- Prefer opening the UI and API under the **`localhost`** hostname so the cookie site matches.
 - JWT remains an option later if we need mobile/third-party API clients without cookies.
 
 ---

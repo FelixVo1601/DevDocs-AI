@@ -93,39 +93,51 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 
 ```text
 DevDocs-AI/
-├── frontend/          # SvelteKit + TypeScript (npm run dev)
-├── backend/           # FastAPI (uvicorn; /health, /db/ping)
-├── docs/              # MVP, architecture, decisions
-├── docker-compose.yml # PostgreSQL for local development
-├── .env.example       # Env template (copy to .env; never commit .env)
-├── .gitignore
+├── frontend/          # SvelteKit + TypeScript
+├── backend/           # FastAPI
+├── docs/              # MVP, architecture, decisions, ENV
+├── scripts/           # One-command local start (dev.ps1 / dev.sh)
+├── docker-compose.yml # PostgreSQL
+├── .env.example       # Root env template
 └── README.md
 ```
 
-## How to run
+## How to run (auth end-to-end)
 
-1. **Clone and enter the repo**
-2. **Copy env template:** `copy .env.example .env` (Windows) or `cp .env.example .env`, then adjust secrets if needed
-3. **Database:**
+### Prerequisites
+
+- Docker Desktop (for Postgres)
+- Node.js 20+ and npm
+- Python 3.11+
+
+### Option A — one command
+
+**Windows (PowerShell), from the repo root:**
+
+```powershell
+.\scripts\dev.ps1
+```
+
+**macOS / Linux:**
 
 ```bash
+chmod +x scripts/dev.sh
+./scripts/dev.sh
+```
+
+This copies missing env files, starts Postgres, migrates the DB, then opens API + UI terminals/processes.
+
+### Option B — manual
+
+```bash
+# 1) Env
+cp .env.example .env                    # Windows: copy .env.example .env
+cp frontend/.env.example frontend/.env
+
+# 2) Database
 docker compose up -d db
-```
 
-4. **Frontend:**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173` — home, `/register`, and `/login` pages.
-Copy `frontend/.env.example` to `frontend/.env` so `PUBLIC_API_URL` points at the API (default `http://localhost:8001`).
-
-5. **Backend:**
-
-```bash
+# 3) Backend
 cd backend
 python -m venv .venv
 # Windows: .\.venv\Scripts\Activate.ps1
@@ -133,14 +145,23 @@ python -m venv .venv
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+
+# 4) Frontend (new terminal)
+cd frontend
+npm install
+npm run dev -- --host localhost --port 5173
 ```
 
-- Health: http://127.0.0.1:8001/health → `{"status":"ok"}`
-- DB ping: http://127.0.0.1:8001/db/ping → `{"database":"ok"}`
-- Schema: http://127.0.0.1:8001/db/schema → `{"users_and_sessions":true}`
-- OpenAPI: http://127.0.0.1:8001/docs
+### Verify auth (no CORS hacks)
 
-Use [.env.example](.env.example) as the configuration contract. `DATABASE_URL` must match the Compose Postgres credentials.
+1. Open **http://localhost:5173** (use `localhost`, not `127.0.0.1`, so the session cookie matches `PUBLIC_API_URL`).
+2. Register at `/register`, then open `/app` (protected).
+3. Refresh — you should stay signed in.
+4. Log out — `/app` should send you back to login.
+
+API docs: http://localhost:8001/docs · Health: http://localhost:8001/health
+
+CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) with `allow_credentials=True`. Full variable reference: [docs/ENV.md](docs/ENV.md).
 
 ## Development roadmap
 
@@ -148,7 +169,8 @@ Use [.env.example](.env.example) as the configuration contract. `DATABASE_URL` m
 |-------|--------|
 | **Day 1** | Product requirements, GitHub repo, README, MVP definition |
 | **Day 2** | Architecture docs, monorepo layout, env template |
-| **Day 2+** | Project scaffolding, auth, database schema |
+| **Days 3–9** | Frontend/backend scaffold, Postgres, auth API + UI, protected `/app` |
+| **Day 10** | CORS, env docs, local DX scripts |
 | **Next** | GitHub OAuth, repository listing and selection |
 | **Next** | Ingestion pipeline (fetch → filter → chunk → embed → store) |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
