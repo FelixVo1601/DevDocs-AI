@@ -88,6 +88,15 @@ See [docs/GITHUB_OAUTH.md](../docs/GITHUB_OAUTH.md). After configuring `GITHUB_C
 3. Authorize → redirect to `/app?github=connected`.
 4. `GET /auth/github/connection` returns login metadata (never the token).
 
+### List repositories
+
+```powershell
+# After login + GitHub connect (cookies.txt from login)
+curl.exe -s -b cookies.txt http://localhost:8001/github/repos
+```
+
+Returns `{ "repos": [...], "count": N }` for public and accessible private repos.
+
 ## Migrations
 
 Apply schema on an empty database:

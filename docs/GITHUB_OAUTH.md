@@ -50,6 +50,7 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 | GET | `/auth/github/start` | Session cookie | Redirect to GitHub |
 | GET | `/auth/github/callback` | State (+ cookie if present) | Exchange code, store encrypted token |
 | GET | `/auth/github/connection` | Session cookie | Connection metadata only (no token) |
+| GET | `/github/repos` | Session cookie + GitHub connected | List public + accessible private repos |
 
 ## Security notes
 
