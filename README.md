@@ -95,7 +95,7 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 DevDocs-AI/
 ├── frontend/          # SvelteKit + TypeScript
 ├── backend/           # FastAPI
-├── docs/              # MVP, architecture, decisions, ENV
+├── docs/              # MVP, architecture, decisions, ENV, indexing schema
 ├── scripts/           # One-command local start (dev.ps1 / dev.sh)
 ├── docker-compose.yml # PostgreSQL
 ├── .env.example       # Root env template
@@ -175,8 +175,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 12** | GitHub connect UI |
 | **Day 13** | List repositories API |
 | **Day 14** | Select repository (API + UI) — Week 2 skeleton complete |
-| **Next** | Repository ingestion / RAG (post–Week 2) |
-| **Next** | Ingestion pipeline (fetch → filter → chunk → embed → store) |
+| **Day 15** | Indexing schema: jobs, files, chunks (vectors later) |
+| **Next** | Repository ingestion / RAG pipeline |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 

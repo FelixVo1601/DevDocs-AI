@@ -13,11 +13,13 @@ backend/
 │   ├── config.py            # DATABASE_URL from env
 │   ├── db.py                # Engine + ping helpers
 │   ├── main.py              # FastAPI routes
-│   ├── models/              # users, sessions, github_accounts
-│   ├── routers/             # auth + github oauth
+│   ├── models/              # users, sessions, github, indexing tables
+│   ├── routers/             # auth + github oauth + repos
 │   └── services/            # GitHub OAuth helpers
 └── requirements.txt
 ```
+
+Indexing schema (jobs / files / chunks, no vectors yet): [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md).
 
 ## Prerequisites
 
