@@ -12,6 +12,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.index_job import IndexJob
+    from app.models.repository_file import RepositoryFile
     from app.models.user import User
 
 
@@ -39,3 +41,11 @@ class SelectedRepository(Base, TimestampMixin):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     user: Mapped[User] = relationship(back_populates="selected_repository")
+    index_jobs: Mapped[list[IndexJob]] = relationship(
+        back_populates="selected_repository",
+        cascade="all, delete-orphan",
+    )
+    files: Mapped[list[RepositoryFile]] = relationship(
+        back_populates="selected_repository",
+        cascade="all, delete-orphan",
+    )
