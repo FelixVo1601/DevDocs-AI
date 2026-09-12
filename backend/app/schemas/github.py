@@ -55,3 +55,27 @@ class SelectedRepositoryEnvelope(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     selected: SelectedRepositoryResponse | None = None
+
+
+class FetchedRepositoryFile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
+    content_sha: str
+    language: str | None = None
+    size_bytes: int | None = None
+    line_count: int | None = None
+    content: str
+
+
+class FetchRepositoryContentsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    job_id: str
+    status: str
+    full_name: str
+    ref: str
+    commit_sha: str
+    file_count: int
+    skipped_over_cap: int = 0
+    files: list[FetchedRepositoryFile] = Field(default_factory=list)

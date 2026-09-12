@@ -11,11 +11,13 @@ from sqlalchemy import select
 from app.deps import CurrentUser, DbSession
 from app.models import SelectedRepository
 from app.schemas.github import (
+    FetchRepositoryContentsResponse,
     GitHubRepoListResponse,
     SelectedRepositoryEnvelope,
     SelectedRepositoryResponse,
     SelectRepositoryRequest,
 )
+from app.services.fetch_repo import fetch_selected_repository_contents
 from app.services.github_api import get_repository_by_id, list_user_repositories
 from app.services.github_oauth import GitHubOAuthError
 from app.services.github_tokens import get_github_access_token
@@ -109,3 +111,20 @@ def select_repo(
     return SelectedRepositoryEnvelope(
         selected=SelectedRepositoryResponse.model_validate(row)
     )
+
+
+@router.post(
+    "/selected-repo/fetch",
+    response_model=FetchRepositoryContentsResponse,
+)
+def fetch_selected_repo_contents(
+    current_user: CurrentUser, db: DbSession
+) -> FetchRepositoryContentsResponse:
+    """
+    Fetch filtered file list + content for the selected repository.
+
+    Uses GitHub Trees + Blobs APIs (no clone). Stores ``repository_files`` and
+    full-file ``code_chunks`` (chunk_index=0) for later processing.
+    """
+    result = fetch_selected_repository_contents(db, current_user.id)
+    return FetchRepositoryContentsResponse.model_validate(result)
