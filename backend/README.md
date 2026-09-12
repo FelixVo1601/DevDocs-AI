@@ -104,6 +104,16 @@ curl.exe -s -b cookies.txt -X PUT http://localhost:8001/github/selected-repo `
 
 Selection is stored per user in Postgres and survives refresh. On `/app`, pick a repo from the list after connecting GitHub.
 
+### Fetch selected repository contents
+
+Pulls a filtered file list + text content via GitHub Trees/Blobs (no git clone). Stores rows in `repository_files` / `code_chunks` and returns them for processing.
+
+```powershell
+curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/fetch
+```
+
+Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md).
+
 ## Migrations
 
 Apply schema on an empty database:

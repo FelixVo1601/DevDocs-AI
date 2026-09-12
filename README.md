@@ -176,7 +176,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 13** | List repositories API |
 | **Day 14** | Select repository (API + UI) — Week 2 skeleton complete |
 | **Day 15** | Indexing schema: jobs, files, chunks (vectors later) |
-| **Next** | Repository ingestion / RAG pipeline |
+| **Day 16** | Fetch selected-repo file list + content (GitHub Trees/Blobs) |
+| **Next** | Chunking / embeddings / RAG pipeline |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 
