@@ -25,12 +25,12 @@ users
 
 1. Resolves the selected repo’s default branch → commit SHA
 2. Lists blobs via GitHub **Trees** API (`recursive=1`)
-3. Filters noise (`node_modules`, build dirs, binaries, large files) and keeps common source/doc extensions
+3. Filters noise (`node_modules`, build dirs, binaries, secrets, large files) and keeps common source/doc extensions — see [FILE_FILTERS.md](FILE_FILTERS.md)
 4. Loads each blob via **Blobs** API
 5. Replaces prior `repository_files` / chunks for that selection
 6. Stores each file as `code_chunks.chunk_index = 0` (full file) and returns paths + content
 
-Caps: 150 files, 200KB per file (see `app/services/repo_filters.py`).
+Caps: 150 files, 200KB per file (see [FILE_FILTERS.md](FILE_FILTERS.md)).
 
 ## Apply
 
