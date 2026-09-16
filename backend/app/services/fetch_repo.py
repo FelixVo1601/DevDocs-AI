@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections import Counter
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
@@ -27,8 +28,8 @@ from app.services.github_oauth import GitHubOAuthError
 from app.services.github_tokens import get_github_access_token
 from app.services.repo_filters import (
     MAX_FILES_PER_FETCH,
+    classify_path,
     guess_language,
-    should_include_path,
 )
 
 logger = logging.getLogger(__name__)
@@ -76,11 +77,14 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
                 "Repository tree is truncated; choose a smaller repo for MVP fetch"
             )
 
-        candidates = [
-            item
-            for item in tree["tree"]
-            if should_include_path(item["path"], item.get("size"))
-        ]
+        candidates = []
+        skip_reasons: Counter[str] = Counter()
+        for item in tree["tree"]:
+            decision = classify_path(item["path"], item.get("size"))
+            if decision.include:
+                candidates.append(item)
+            else:
+                skip_reasons[decision.reason] += 1
         candidates.sort(key=lambda item: item["path"])
         skipped_over_cap = max(0, len(candidates) - MAX_FILES_PER_FETCH)
         candidates = candidates[:MAX_FILES_PER_FETCH]
@@ -153,11 +157,12 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
         db.refresh(job)
 
         logger.info(
-            "Fetched repo contents user_id=%s full_name=%s files=%s skipped_cap=%s",
+            "Fetched repo contents user_id=%s full_name=%s files=%s skipped_cap=%s skipped=%s",
             user_id,
             selected.full_name,
             len(files_out),
             skipped_over_cap,
+            dict(sorted(skip_reasons.items())),
         )
         return {
             "job_id": str(job.id),

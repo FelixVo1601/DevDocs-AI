@@ -112,7 +112,17 @@ Pulls a filtered file list + text content via GitHub Trees/Blobs (no git clone).
 curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/fetch
 ```
 
-Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md).
+Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md) and [docs/FILE_FILTERS.md](../docs/FILE_FILTERS.md).
+
+## Tests
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
+
+Currently covers the ingestion path filters (`tests/test_repo_filters.py`).
 
 ## Migrations
 
