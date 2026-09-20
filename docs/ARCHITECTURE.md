@@ -162,7 +162,7 @@ Intended local layout (see also Docker decision in [DECISIONS.md](DECISIONS.md))
 |---------|----------------|
 | `frontend` | SvelteKit app (dev server) |
 | `backend` | FastAPI (Uvicorn) |
-| `db` | PostgreSQL (later with pgvector) |
+| `db` | PostgreSQL 16 + pgvector (`pgvector/pgvector:pg16`) |
 
 Docker Compose keeps frontend, backend, and database aligned across machines without requiring each developer to install every dependency globally.
 

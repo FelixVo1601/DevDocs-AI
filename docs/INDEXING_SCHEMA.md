@@ -9,7 +9,7 @@ users
   └── selected_repositories          # one selected GitHub repo per user (Day 14)
         ├── index_jobs               # ingestion/index run status
         └── repository_files         # discovered source/doc files
-              └── code_chunks        # line-window text (embeddings later)
+              └── code_chunks        # line-window text + optional embedding (pgvector)
 ```
 
 | Table | Purpose |
@@ -17,7 +17,7 @@ users
 | `selected_repositories` | User’s chosen repo metadata |
 | `index_jobs` | Job lifecycle: `pending` → `running` → `succeeded` / `failed` |
 | `repository_files` | File path + sha/language/size under a selected repo |
-| `code_chunks` | Chunk text + inclusive start/end lines; **no vector column yet** |
+| `code_chunks` | Chunk text + inclusive start/end lines + nullable `embedding vector(1536)` |
 
 ## Fetch + chunk (Days 16–18)
 
@@ -32,6 +32,10 @@ users
 
 Caps: 150 files, 200KB per file (see [FILE_FILTERS.md](FILE_FILTERS.md)). Chunk windows: 40 lines / 5-line overlap.
 
+## pgvector (Day 19)
+
+Compose image: `pgvector/pgvector:pg16`. Migration `0005_pgvector` enables the extension and adds `code_chunks.embedding`. See [PGVECTOR.md](PGVECTOR.md).
+
 ## Apply
 
 ```bash
@@ -42,5 +46,5 @@ alembic upgrade head
 
 ## Next
 
-- Embeddings via pgvector
+- Generate embeddings for chunks
 - Retriever + ask API with citations
