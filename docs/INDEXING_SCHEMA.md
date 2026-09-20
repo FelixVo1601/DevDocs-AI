@@ -9,7 +9,7 @@ users
   └── selected_repositories          # one selected GitHub repo per user (Day 14)
         ├── index_jobs               # ingestion/index run status
         └── repository_files         # discovered source/doc files
-              └── code_chunks        # text (full file on Day 16; chunked later)
+              └── code_chunks        # line-window text (embeddings later)
 ```
 
 | Table | Purpose |
@@ -17,20 +17,20 @@ users
 | `selected_repositories` | User’s chosen repo metadata |
 | `index_jobs` | Job lifecycle: `pending` → `running` → `succeeded` / `failed` |
 | `repository_files` | File path + sha/language/size under a selected repo |
-| `code_chunks` | Chunk text + line range; **no vector column yet** |
+| `code_chunks` | Chunk text + inclusive start/end lines; **no vector column yet** |
 
-## Fetch contents (Day 16)
+## Fetch + chunk (Days 16–18)
 
 `POST /github/selected-repo/fetch` (session cookie required):
 
 1. Resolves the selected repo’s default branch → commit SHA
 2. Lists blobs via GitHub **Trees** API (`recursive=1`)
-3. Filters noise (`node_modules`, build dirs, binaries, secrets, large files) and keeps common source/doc extensions — see [FILE_FILTERS.md](FILE_FILTERS.md)
+3. Filters noise (`node_modules`, build dirs, binaries, secrets, large files) — see [FILE_FILTERS.md](FILE_FILTERS.md)
 4. Loads each blob via **Blobs** API
 5. Replaces prior `repository_files` / chunks for that selection
-6. Stores each file as `code_chunks.chunk_index = 0` (full file) and returns paths + content
+6. Splits each file into overlapping line windows and stores `code_chunks` — see [CHUNKING.md](CHUNKING.md)
 
-Caps: 150 files, 200KB per file (see [FILE_FILTERS.md](FILE_FILTERS.md)).
+Caps: 150 files, 200KB per file (see [FILE_FILTERS.md](FILE_FILTERS.md)). Chunk windows: 40 lines / 5-line overlap.
 
 ## Apply
 
@@ -42,5 +42,5 @@ alembic upgrade head
 
 ## Next
 
-- Split full-file chunks into retrieval-sized pieces
 - Embeddings via pgvector
+- Retriever + ask API with citations

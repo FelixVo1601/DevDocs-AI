@@ -57,6 +57,19 @@ class SelectedRepositoryEnvelope(BaseModel):
     selected: SelectedRepositoryResponse | None = None
 
 
+class FetchedFileChunk(BaseModel):
+    """Citation-ready chunk: path + inclusive line range + text."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
+    chunk_index: int
+    start_line: int
+    end_line: int
+    content: str
+    token_count: int | None = None
+
+
 class FetchedRepositoryFile(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -65,7 +78,8 @@ class FetchedRepositoryFile(BaseModel):
     language: str | None = None
     size_bytes: int | None = None
     line_count: int | None = None
-    content: str
+    chunk_count: int = 0
+    chunks: list[FetchedFileChunk] = Field(default_factory=list)
 
 
 class FetchRepositoryContentsResponse(BaseModel):
@@ -77,5 +91,6 @@ class FetchRepositoryContentsResponse(BaseModel):
     ref: str
     commit_sha: str
     file_count: int
+    chunk_count: int = 0
     skipped_over_cap: int = 0
     files: list[FetchedRepositoryFile] = Field(default_factory=list)

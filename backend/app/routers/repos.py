@@ -124,7 +124,7 @@ def fetch_selected_repo_contents(
     Fetch filtered file list + content for the selected repository.
 
     Uses GitHub Trees + Blobs APIs (no clone). Stores ``repository_files`` and
-    full-file ``code_chunks`` (chunk_index=0) for later processing.
+    line-window ``code_chunks`` (path + start/end lines) for later citations.
     """
     result = fetch_selected_repository_contents(db, current_user.id)
     return FetchRepositoryContentsResponse.model_validate(result)

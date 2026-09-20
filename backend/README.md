@@ -106,13 +106,13 @@ Selection is stored per user in Postgres and survives refresh. On `/app`, pick a
 
 ### Fetch selected repository contents
 
-Pulls a filtered file list + text content via GitHub Trees/Blobs (no git clone). Stores rows in `repository_files` / `code_chunks` and returns them for processing.
+Pulls a filtered file list + text content via GitHub Trees/Blobs (no git clone). Stores rows in `repository_files` / line-window `code_chunks` and returns chunk metadata for citations.
 
 ```powershell
 curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/fetch
 ```
 
-Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md) and [docs/FILE_FILTERS.md](../docs/FILE_FILTERS.md).
+Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md), [docs/FILE_FILTERS.md](../docs/FILE_FILTERS.md), and [docs/CHUNKING.md](../docs/CHUNKING.md).
 
 ## Tests
 
@@ -122,7 +122,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Currently covers the ingestion path filters (`tests/test_repo_filters.py`).
+Covers ingestion path filters (`tests/test_repo_filters.py`) and line-based chunking (`tests/test_chunking.py`).
 
 ## Migrations
 
