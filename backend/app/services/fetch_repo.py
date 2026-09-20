@@ -25,6 +25,7 @@ from app.services.github_api import (
     get_repository_tree,
 )
 from app.services.github_oauth import GitHubOAuthError
+from app.services.chunking import chunk_file_content
 from app.services.github_tokens import get_github_access_token
 from app.services.repo_filters import (
     MAX_FILES_PER_FETCH,
@@ -39,9 +40,9 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
     """
     Pull filtered source/docs from the user's selected repo.
 
-    Creates an ``index_jobs`` row, replaces ``repository_files`` (+ content as
-    a single ``code_chunks`` row per file for later processing), and returns a
-    summary including file paths and content.
+    Creates an ``index_jobs`` row, replaces ``repository_files``, splits each
+    file into retrieval-sized ``code_chunks`` (path + start/end lines), and
+    returns a summary including chunk metadata for later citations.
     """
     selected = db.scalar(
         select(SelectedRepository).where(SelectedRepository.user_id == user_id)
@@ -127,17 +128,30 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
             db.add(file_row)
             db.flush()
 
-            db.add(
-                CodeChunk(
-                    id=uuid4(),
-                    file_id=file_row.id,
-                    chunk_index=0,
-                    start_line=1 if line_count else None,
-                    end_line=line_count if line_count else None,
-                    content=content,
-                    token_count=None,
+            text_chunks = chunk_file_content(content)
+            chunk_payloads: list[dict] = []
+            for piece in text_chunks:
+                db.add(
+                    CodeChunk(
+                        id=uuid4(),
+                        file_id=file_row.id,
+                        chunk_index=piece.chunk_index,
+                        start_line=piece.start_line,
+                        end_line=piece.end_line,
+                        content=piece.content,
+                        token_count=piece.token_count,
+                    )
                 )
-            )
+                chunk_payloads.append(
+                    {
+                        "path": path,
+                        "chunk_index": piece.chunk_index,
+                        "start_line": piece.start_line,
+                        "end_line": piece.end_line,
+                        "content": piece.content,
+                        "token_count": piece.token_count,
+                    }
+                )
 
             files_out.append(
                 {
@@ -146,7 +160,8 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
                     "language": file_row.language,
                     "size_bytes": file_row.size_bytes,
                     "line_count": file_row.line_count,
-                    "content": content,
+                    "chunk_count": len(chunk_payloads),
+                    "chunks": chunk_payloads,
                 }
             )
 
@@ -156,11 +171,14 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
         db.commit()
         db.refresh(job)
 
+        total_chunks = sum(int(f["chunk_count"]) for f in files_out)
         logger.info(
-            "Fetched repo contents user_id=%s full_name=%s files=%s skipped_cap=%s skipped=%s",
+            "Fetched repo contents user_id=%s full_name=%s files=%s chunks=%s "
+            "skipped_cap=%s skipped=%s",
             user_id,
             selected.full_name,
             len(files_out),
+            total_chunks,
             skipped_over_cap,
             dict(sorted(skip_reasons.items())),
         )
@@ -171,6 +189,7 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
             "ref": selected.default_branch,
             "commit_sha": commit_sha,
             "file_count": len(files_out),
+            "chunk_count": total_chunks,
             "skipped_over_cap": skipped_over_cap,
             "files": files_out,
         }
