@@ -46,8 +46,8 @@ See [docs/MVP.md](docs/MVP.md) for the full Version 1 scope and explicit out-of-
 |-------|--------|------|
 | Frontend | SvelteKit | Auth UI, repo selection, Q&A experience |
 | Backend / API | Python + FastAPI | Auth, GitHub integration, indexing orchestration, RAG endpoints |
-| Database | PostgreSQL | Users, sessions, repository metadata |
-| Vector store | pgvector (later) | Embedding storage and similarity search |
+| Database | PostgreSQL + pgvector | Users, sessions, repository metadata, chunk embeddings |
+| Vector store | pgvector (same DB) | `code_chunks.embedding vector(1536)` |
 | Auth | App auth + GitHub OAuth | Login and GitHub access |
 | LLM / embeddings | OpenAI-compatible API (configurable; post–Week 1) | Embeddings and answer generation |
 | Source control API | GitHub API | List repos, fetch repository content |
@@ -179,6 +179,7 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 16** | Fetch selected-repo file list + content (GitHub Trees/Blobs) |
 | **Day 17** | File filter rules (documented + unit-tested) |
 | **Day 18** | Chunking with path + start/end line metadata |
+| **Day 19** | pgvector Compose image + embedding column |
 | **Next** | Embeddings / RAG pipeline |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |

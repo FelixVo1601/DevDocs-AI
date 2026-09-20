@@ -1,6 +1,8 @@
 services:
   db:
-    image: postgres:16-alpine
+    # Official Postgres 16 image with the pgvector extension preinstalled.
+    # Plain postgres:16-alpine cannot CREATE EXTENSION vector.
+    image: pgvector/pgvector:pg16
     container_name: devdocs-db
     restart: unless-stopped
     environment:

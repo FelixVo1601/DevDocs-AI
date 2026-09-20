@@ -142,17 +142,34 @@ Prevents scope creep and lets auth, GitHub integration, and data modeling stabil
 
 ## Decision: Indexing tables hang off selected_repositories
 
-**Choice:** `index_jobs`, `repository_files`, and `code_chunks` FK to the existing `selected_repositories` row (no separate `repositories` table yet). Chunks store text only; embeddings deferred to pgvector.
+**Choice:** `index_jobs`, `repository_files`, and `code_chunks` FK to the existing `selected_repositories` row (no separate `repositories` table yet). Chunks store text; embeddings live in `code_chunks.embedding` via pgvector (Day 19).
 
 **Reason:**
 
-Users already pick one repo via `selected_repositories`. Reusing that row avoids duplicating GitHub metadata until multi-repo indexing needs its own lifecycle. Skipping the vector column keeps Day 15 migrations simple and free of the pgvector extension.
+Users already pick one repo via `selected_repositories`. Reusing that row avoids duplicating GitHub metadata until multi-repo indexing needs its own lifecycle.
 
 **Implications:**
 
 - Deleting a selection cascades jobs/files/chunks.
 - Ingestion should create `index_jobs` rows and write files/chunks under that repo id.
 - See [INDEXING_SCHEMA.md](INDEXING_SCHEMA.md).
+
+---
+
+## Decision: pgvector in the primary Postgres
+
+**Choice:** Compose image `pgvector/pgvector:pg16`; Alembic enables `vector` and adds nullable `code_chunks.embedding vector(1536)`.
+
+**Reason:**
+
+Keeps relational data and vectors in one database (see PostgreSQL decision). 1536 matches common OpenAI-compatible embedding sizes; the column stays nullable until an embedding job runs.
+
+**Implications:**
+
+- Local Postgres must be the pgvector image (plain `postgres` alpine cannot load the extension).
+- Switching images may require recreating the Compose volume once.
+- Similarity uses cosine distance (`<=>`); ANN indexes (HNSW/IVFFlat) can come when volume grows.
+- See [PGVECTOR.md](PGVECTOR.md).
 
 ---
 

@@ -122,7 +122,11 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Covers ingestion path filters (`tests/test_repo_filters.py`) and line-based chunking (`tests/test_chunking.py`).
+Covers ingestion path filters (`tests/test_repo_filters.py`), line-based chunking
+(`tests/test_chunking.py`), and pgvector setup (`tests/test_pgvector.py` — needs
+Postgres with migration `0005_pgvector` applied).
+
+See also [docs/PGVECTOR.md](../docs/PGVECTOR.md).
 
 ## Migrations
 
