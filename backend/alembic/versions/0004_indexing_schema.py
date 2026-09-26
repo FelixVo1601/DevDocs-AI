@@ -27,6 +27,7 @@ index_job_status = postgresql.ENUM(
     name="index_job_status",
     create_type=False,
 )
+# Note: label "succeeded" is renamed to "ready" in 0006_index_job_ready.
 
 
 def upgrade() -> None:
