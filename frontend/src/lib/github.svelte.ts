@@ -29,6 +29,27 @@ export type SelectedRepository = {
 	description?: string | null;
 };
 
+export type IndexJob = {
+	id: string;
+	status: 'pending' | 'running' | 'ready' | 'failed' | string;
+	error_message?: string | null;
+	commit_sha?: string | null;
+	started_at?: string | null;
+	finished_at?: string | null;
+	created_at?: string | null;
+};
+
+export type IndexStatus = {
+	selected: { full_name: string; default_branch: string } | null;
+	job: IndexJob | null;
+	file_count: number;
+	chunk_count: number;
+	embedded_count: number;
+	embedded?: number | null;
+	skipped_empty?: number | null;
+	truncated?: number | null;
+};
+
 class GitHubState {
 	connection = $state<GitHubConnection | null>(null);
 	loading = $state(false);
@@ -43,6 +64,11 @@ class GitHubState {
 	selectError = $state<string | null>(null);
 	selectingId = $state<number | null>(null);
 
+	indexStatus = $state<IndexStatus | null>(null);
+	indexLoading = $state(false);
+	indexError = $state<string | null>(null);
+	indexing = $state(false);
+
 	async refresh(): Promise<void> {
 		this.loading = true;
 		this.error = null;
@@ -50,9 +76,11 @@ class GitHubState {
 			this.connection = await apiGet<GitHubConnection>('/auth/github/connection');
 			if (this.connection.connected) {
 				await Promise.all([this.loadRepos(), this.loadSelected()]);
+				await this.loadIndexStatus();
 			} else {
 				this.repos = [];
 				this.selected = null;
+				this.indexStatus = null;
 			}
 		} catch (err) {
 			this.connection = { connected: false };
@@ -108,11 +136,46 @@ class GitHubState {
 				}
 			);
 			this.selected = data.selected;
+			await this.loadIndexStatus();
 		} catch (err) {
 			this.selectError =
 				err instanceof ApiError ? err.message : 'Could not save repository selection.';
 		} finally {
 			this.selectingId = null;
+		}
+	}
+
+	async loadIndexStatus(): Promise<void> {
+		if (!this.selected) {
+			this.indexStatus = null;
+			return;
+		}
+		this.indexLoading = true;
+		this.indexError = null;
+		try {
+			this.indexStatus = await apiGet<IndexStatus>('/github/selected-repo/index-status');
+		} catch (err) {
+			this.indexStatus = null;
+			this.indexError =
+				err instanceof ApiError ? err.message : 'Could not load index status.';
+		} finally {
+			this.indexLoading = false;
+		}
+	}
+
+	async indexSelected(): Promise<void> {
+		this.indexError = null;
+		this.indexing = true;
+		try {
+			this.indexStatus = await apiRequest<IndexStatus>('/github/selected-repo/index', {
+				method: 'POST'
+			});
+		} catch (err) {
+			this.indexError =
+				err instanceof ApiError ? err.message : 'Indexing failed.';
+			await this.loadIndexStatus();
+		} finally {
+			this.indexing = false;
 		}
 	}
 

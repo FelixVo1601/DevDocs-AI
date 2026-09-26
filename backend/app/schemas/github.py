@@ -106,3 +106,35 @@ class EmbedRepositoryResponse(BaseModel):
     skipped_existing: int = 0
     truncated: int = 0
     force: bool = False
+
+
+class IndexJobInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    status: str
+    error_message: str | None = None
+    commit_sha: str | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
+    created_at: str | None = None
+
+
+class IndexSelectedInfo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    full_name: str
+    default_branch: str
+
+
+class IndexStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    selected: IndexSelectedInfo | None = None
+    job: IndexJobInfo | None = None
+    file_count: int = 0
+    chunk_count: int = 0
+    embedded_count: int = 0
+    embedded: int | None = None
+    skipped_empty: int | None = None
+    truncated: int | None = None

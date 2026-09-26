@@ -26,12 +26,16 @@ def embed_selected_repository_chunks(
     *,
     force: bool = False,
     client: EmbeddingsClient | None = None,
+    commit: bool = True,
 ) -> dict:
     """
     Write embeddings into ``code_chunks.embedding`` for the selected repo.
 
     Skips empty/whitespace chunks. Truncates oversized text. By default only
     fills rows where ``embedding`` is NULL unless ``force`` is True.
+
+    When ``commit`` is False, changes are flushed only — the caller owns the
+    transaction (used by the full index orchestrator).
     """
     selected = db.scalar(
         select(SelectedRepository).where(SelectedRepository.user_id == user_id)
@@ -63,7 +67,6 @@ def embed_selected_repository_chunks(
             detail=str(exc),
         ) from exc
 
-    candidates: list[CodeChunk] = []
     skipped_empty = 0
     skipped_existing = 0
     truncated = 0
@@ -81,7 +84,6 @@ def embed_selected_repository_chunks(
             if len(chunk.content.strip()) > len(text):
                 truncated += 1
             prepared.append((chunk, text))
-            candidates.append(chunk)
 
     embedded = 0
     try:
@@ -92,9 +94,13 @@ def embed_selected_repository_chunks(
             for (chunk, _), vector in zip(batch, vectors, strict=True):
                 chunk.embedding = vector
                 embedded += 1
-        db.commit()
+        if commit:
+            db.commit()
+        else:
+            db.flush()
     except EmbeddingsError as exc:
-        db.rollback()
+        if commit:
+            db.rollback()
         logger.error(
             "Embed failed user_id=%s full_name=%s: %s",
             user_id,
@@ -106,7 +112,8 @@ def embed_selected_repository_chunks(
             detail=str(exc),
         ) from exc
     except Exception as exc:
-        db.rollback()
+        if commit:
+            db.rollback()
         logger.exception(
             "Unexpected embed failure user_id=%s full_name=%s",
             user_id,

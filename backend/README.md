@@ -126,6 +126,15 @@ curl.exe -s -b cookies.txt -X POST "http://localhost:8001/github/selected-repo/e
 
 See [docs/EMBEDDINGS.md](../docs/EMBEDDINGS.md).
 
+### Index repository (fetch + embed)
+
+```powershell
+curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/index
+curl.exe -s -b cookies.txt http://localhost:8001/github/selected-repo/index-status
+```
+
+Status values: `pending` → `running` → `ready` / `failed`. See [docs/INDEX_JOBS.md](../docs/INDEX_JOBS.md).
+
 ## Tests
 
 ```bash
@@ -134,11 +143,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Covers ingestion path filters (`tests/test_repo_filters.py`), line-based chunking
-(`tests/test_chunking.py`), pgvector setup (`tests/test_pgvector.py`), and
-embeddings (`tests/test_embeddings_client.py`, `tests/test_embed_repo.py`).
-
-See also [docs/PGVECTOR.md](../docs/PGVECTOR.md) and [docs/EMBEDDINGS.md](../docs/EMBEDDINGS.md).
+Covers filters, chunking, pgvector, embeddings, and index jobs (`tests/test_index_repo.py`).
 
 ## Migrations
 

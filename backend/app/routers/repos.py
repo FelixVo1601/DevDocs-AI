@@ -14,6 +14,7 @@ from app.schemas.github import (
     EmbedRepositoryResponse,
     FetchRepositoryContentsResponse,
     GitHubRepoListResponse,
+    IndexStatusResponse,
     SelectedRepositoryEnvelope,
     SelectedRepositoryResponse,
     SelectRepositoryRequest,
@@ -23,6 +24,7 @@ from app.services.fetch_repo import fetch_selected_repository_contents
 from app.services.github_api import get_repository_by_id, list_user_repositories
 from app.services.github_oauth import GitHubOAuthError
 from app.services.github_tokens import get_github_access_token
+from app.services.index_repo import get_index_status, index_selected_repository
 
 logger = logging.getLogger(__name__)
 
@@ -149,3 +151,32 @@ def embed_selected_repo_chunks(
     """
     result = embed_selected_repository_chunks(db, current_user.id, force=force)
     return EmbedRepositoryResponse.model_validate(result)
+
+
+@router.post(
+    "/selected-repo/index",
+    response_model=IndexStatusResponse,
+)
+def index_selected_repo(
+    current_user: CurrentUser, db: DbSession
+) -> IndexStatusResponse:
+    """
+    Trigger a full sync index for the selected repository.
+
+    Runs fetch → chunk → embed in-process (MVP). Job status moves
+    ``pending`` → ``running`` → ``ready`` / ``failed``.
+    """
+    result = index_selected_repository(db, current_user.id)
+    return IndexStatusResponse.model_validate(result)
+
+
+@router.get(
+    "/selected-repo/index-status",
+    response_model=IndexStatusResponse,
+)
+def selected_repo_index_status(
+    current_user: CurrentUser, db: DbSession
+) -> IndexStatusResponse:
+    """Return the latest index job status for the selected repository."""
+    result = get_index_status(db, current_user.id)
+    return IndexStatusResponse.model_validate(result)

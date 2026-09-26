@@ -18,6 +18,7 @@ from app.models import (
     RepositoryFile,
     SelectedRepository,
 )
+from app.services.chunking import chunk_file_content
 from app.services.github_api import (
     NonTextBlobError,
     get_blob_text,
@@ -25,7 +26,6 @@ from app.services.github_api import (
     get_repository_tree,
 )
 from app.services.github_oauth import GitHubOAuthError
-from app.services.chunking import chunk_file_content
 from app.services.github_tokens import get_github_access_token
 from app.services.repo_filters import (
     MAX_FILES_PER_FETCH,
@@ -36,13 +36,141 @@ from app.services.repo_filters import (
 logger = logging.getLogger(__name__)
 
 
+def fetch_and_store_contents(
+    db: Session,
+    selected: SelectedRepository,
+    access_token: str,
+) -> dict:
+    """
+    Pull filtered files, replace the snapshot, and store chunks.
+
+    Does **not** create or finalize an ``index_jobs`` row and does **not**
+    commit — callers own the transaction and job lifecycle.
+    """
+    commit_sha = get_branch_commit_sha(
+        access_token, selected.full_name, selected.default_branch
+    )
+    tree = get_repository_tree(
+        access_token, selected.full_name, commit_sha, recursive=True
+    )
+    if tree.get("truncated"):
+        raise GitHubOAuthError(
+            "Repository tree is truncated; choose a smaller repo for MVP fetch"
+        )
+
+    candidates = []
+    skip_reasons: Counter[str] = Counter()
+    for item in tree["tree"]:
+        decision = classify_path(item["path"], item.get("size"))
+        if decision.include:
+            candidates.append(item)
+        else:
+            skip_reasons[decision.reason] += 1
+    candidates.sort(key=lambda item: item["path"])
+    skipped_over_cap = max(0, len(candidates) - MAX_FILES_PER_FETCH)
+    candidates = candidates[:MAX_FILES_PER_FETCH]
+
+    db.execute(
+        delete(RepositoryFile).where(
+            RepositoryFile.selected_repository_id == selected.id
+        )
+    )
+    db.flush()
+
+    files_out: list[dict] = []
+    for item in candidates:
+        path = item["path"]
+        blob_sha = item["sha"]
+        try:
+            content = get_blob_text(access_token, selected.full_name, blob_sha)
+        except NonTextBlobError as exc:
+            logger.warning(
+                "Skipping non-text %s path=%s: %s",
+                selected.full_name,
+                path,
+                exc,
+            )
+            continue
+
+        line_count = len(content.splitlines()) if content else 0
+        file_row = RepositoryFile(
+            id=uuid4(),
+            selected_repository_id=selected.id,
+            path=path,
+            content_sha=blob_sha,
+            language=guess_language(path),
+            size_bytes=item.get("size")
+            if item.get("size") is not None
+            else len(content.encode("utf-8")),
+            line_count=line_count,
+        )
+        db.add(file_row)
+        db.flush()
+
+        text_chunks = chunk_file_content(content)
+        chunk_payloads: list[dict] = []
+        for piece in text_chunks:
+            db.add(
+                CodeChunk(
+                    id=uuid4(),
+                    file_id=file_row.id,
+                    chunk_index=piece.chunk_index,
+                    start_line=piece.start_line,
+                    end_line=piece.end_line,
+                    content=piece.content,
+                    token_count=piece.token_count,
+                )
+            )
+            chunk_payloads.append(
+                {
+                    "path": path,
+                    "chunk_index": piece.chunk_index,
+                    "start_line": piece.start_line,
+                    "end_line": piece.end_line,
+                    "content": piece.content,
+                    "token_count": piece.token_count,
+                }
+            )
+
+        files_out.append(
+            {
+                "path": path,
+                "content_sha": blob_sha,
+                "language": file_row.language,
+                "size_bytes": file_row.size_bytes,
+                "line_count": file_row.line_count,
+                "chunk_count": len(chunk_payloads),
+                "chunks": chunk_payloads,
+            }
+        )
+
+    total_chunks = sum(int(f["chunk_count"]) for f in files_out)
+    logger.info(
+        "Stored repo contents full_name=%s files=%s chunks=%s skipped_cap=%s skipped=%s",
+        selected.full_name,
+        len(files_out),
+        total_chunks,
+        skipped_over_cap,
+        dict(sorted(skip_reasons.items())),
+    )
+    return {
+        "full_name": selected.full_name,
+        "ref": selected.default_branch,
+        "commit_sha": commit_sha,
+        "file_count": len(files_out),
+        "chunk_count": total_chunks,
+        "skipped_over_cap": skipped_over_cap,
+        "files": files_out,
+    }
+
+
 def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
     """
     Pull filtered source/docs from the user's selected repo.
 
-    Creates an ``index_jobs`` row, replaces ``repository_files``, splits each
-    file into retrieval-sized ``code_chunks`` (path + start/end lines), and
-    returns a summary including chunk metadata for later citations.
+    Creates an ``index_jobs`` row (fetch-only), stores chunks, marks the job
+    ``ready`` when the snapshot is written (embeddings are a separate step /
+    full index).
     """
     selected = db.scalar(
         select(SelectedRepository).where(SelectedRepository.user_id == user_id)
@@ -63,135 +191,19 @@ def fetch_selected_repository_contents(db: Session, user_id: UUID) -> dict:
     db.flush()
 
     access_token = get_github_access_token(db, user_id)
-    files_out: list[dict] = []
     try:
-        commit_sha = get_branch_commit_sha(
-            access_token, selected.full_name, selected.default_branch
-        )
-        job.commit_sha = commit_sha
-
-        tree = get_repository_tree(
-            access_token, selected.full_name, commit_sha, recursive=True
-        )
-        if tree.get("truncated"):
-            raise GitHubOAuthError(
-                "Repository tree is truncated; choose a smaller repo for MVP fetch"
-            )
-
-        candidates = []
-        skip_reasons: Counter[str] = Counter()
-        for item in tree["tree"]:
-            decision = classify_path(item["path"], item.get("size"))
-            if decision.include:
-                candidates.append(item)
-            else:
-                skip_reasons[decision.reason] += 1
-        candidates.sort(key=lambda item: item["path"])
-        skipped_over_cap = max(0, len(candidates) - MAX_FILES_PER_FETCH)
-        candidates = candidates[:MAX_FILES_PER_FETCH]
-
-        # Replace previous file snapshot for this selection.
-        db.execute(
-            delete(RepositoryFile).where(
-                RepositoryFile.selected_repository_id == selected.id
-            )
-        )
-        db.flush()
-
-        for item in candidates:
-            path = item["path"]
-            blob_sha = item["sha"]
-            try:
-                content = get_blob_text(access_token, selected.full_name, blob_sha)
-            except NonTextBlobError as exc:
-                logger.warning(
-                    "Skipping non-text %s path=%s: %s",
-                    selected.full_name,
-                    path,
-                    exc,
-                )
-                continue
-
-            line_count = len(content.splitlines()) if content else 0
-
-            file_row = RepositoryFile(
-                id=uuid4(),
-                selected_repository_id=selected.id,
-                path=path,
-                content_sha=blob_sha,
-                language=guess_language(path),
-                size_bytes=item.get("size") if item.get("size") is not None else len(
-                    content.encode("utf-8")
-                ),
-                line_count=line_count,
-            )
-            db.add(file_row)
-            db.flush()
-
-            text_chunks = chunk_file_content(content)
-            chunk_payloads: list[dict] = []
-            for piece in text_chunks:
-                db.add(
-                    CodeChunk(
-                        id=uuid4(),
-                        file_id=file_row.id,
-                        chunk_index=piece.chunk_index,
-                        start_line=piece.start_line,
-                        end_line=piece.end_line,
-                        content=piece.content,
-                        token_count=piece.token_count,
-                    )
-                )
-                chunk_payloads.append(
-                    {
-                        "path": path,
-                        "chunk_index": piece.chunk_index,
-                        "start_line": piece.start_line,
-                        "end_line": piece.end_line,
-                        "content": piece.content,
-                        "token_count": piece.token_count,
-                    }
-                )
-
-            files_out.append(
-                {
-                    "path": path,
-                    "content_sha": blob_sha,
-                    "language": file_row.language,
-                    "size_bytes": file_row.size_bytes,
-                    "line_count": file_row.line_count,
-                    "chunk_count": len(chunk_payloads),
-                    "chunks": chunk_payloads,
-                }
-            )
-
-        job.status = IndexJobStatus.SUCCEEDED
+        result = fetch_and_store_contents(db, selected, access_token)
+        job.commit_sha = result["commit_sha"]
+        job.status = IndexJobStatus.READY
         job.finished_at = datetime.now(timezone.utc)
         job.error_message = None
         db.commit()
         db.refresh(job)
 
-        total_chunks = sum(int(f["chunk_count"]) for f in files_out)
-        logger.info(
-            "Fetched repo contents user_id=%s full_name=%s files=%s chunks=%s "
-            "skipped_cap=%s skipped=%s",
-            user_id,
-            selected.full_name,
-            len(files_out),
-            total_chunks,
-            skipped_over_cap,
-            dict(sorted(skip_reasons.items())),
-        )
         return {
             "job_id": str(job.id),
             "status": job.status.value,
-            "full_name": selected.full_name,
-            "ref": selected.default_branch,
-            "commit_sha": commit_sha,
-            "file_count": len(files_out),
-            "chunk_count": total_chunks,
-            "skipped_over_cap": skipped_over_cap,
-            "files": files_out,
+            **result,
         }
     except GitHubOAuthError as exc:
         logger.error(

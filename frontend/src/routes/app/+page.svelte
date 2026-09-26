@@ -105,6 +105,49 @@
 					·
 					<a href={github.selected.html_url} target="_blank" rel="noreferrer">Open on GitHub</a>
 				</p>
+
+				<div class="index-block">
+					<h3>Indexing</h3>
+					{#if github.indexLoading && !github.indexStatus}
+						<p class="muted">Loading index status…</p>
+					{:else}
+						<p class="index-status" data-status={github.indexStatus?.job?.status ?? 'none'}>
+							Status:
+							<strong>{github.indexStatus?.job?.status ?? 'not indexed'}</strong>
+							{#if github.indexStatus?.job?.commit_sha}
+								<span class="muted">
+									· commit <code>{github.indexStatus.job.commit_sha.slice(0, 7)}</code>
+								</span>
+							{/if}
+						</p>
+						{#if github.indexStatus?.job}
+							<p class="muted">
+								{github.indexStatus.file_count} files ·
+								{github.indexStatus.chunk_count} chunks ·
+								{github.indexStatus.embedded_count} embedded
+							</p>
+						{/if}
+						{#if github.indexStatus?.job?.status === 'failed' && github.indexStatus.job.error_message}
+							<p class="error" role="alert">{github.indexStatus.job.error_message}</p>
+						{/if}
+					{/if}
+					{#if github.indexError}
+						<p class="error" role="alert">{github.indexError}</p>
+					{/if}
+					<button
+						type="button"
+						disabled={github.indexing}
+						onclick={() => void github.indexSelected()}
+					>
+						{#if github.indexing}
+							Indexing…
+						{:else if github.indexStatus?.job?.status === 'ready'}
+							Re-index repository
+						{:else}
+							Index repository
+						{/if}
+					</button>
+				</div>
 			{:else}
 				<p class="muted">No repository selected yet. Pick one below.</p>
 			{/if}
@@ -286,6 +329,34 @@
 	.badge.public {
 		background: #e8f8ee;
 		color: #14532d;
+	}
+
+	.index-block {
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid #e4e8ec;
+	}
+
+	.index-block h3 {
+		margin: 0 0 0.5rem;
+		font-size: 1rem;
+	}
+
+	.index-status {
+		margin: 0 0 0.35rem;
+	}
+
+	.index-status[data-status='ready'] strong {
+		color: #14532d;
+	}
+
+	.index-status[data-status='failed'] strong {
+		color: #9b1c1c;
+	}
+
+	.index-status[data-status='running'] strong,
+	.index-status[data-status='pending'] strong {
+		color: #9a6700;
 	}
 
 	.filter {

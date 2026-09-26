@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class IndexJobStatus(str, enum.Enum):
     PENDING = "pending"
     RUNNING = "running"
-    SUCCEEDED = "succeeded"
+    READY = "ready"
     FAILED = "failed"
 
 

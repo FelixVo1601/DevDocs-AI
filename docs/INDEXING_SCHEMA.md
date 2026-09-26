@@ -15,7 +15,7 @@ users
 | Table | Purpose |
 |-------|---------|
 | `selected_repositories` | User’s chosen repo metadata |
-| `index_jobs` | Job lifecycle: `pending` → `running` → `succeeded` / `failed` |
+| `index_jobs` | Job lifecycle: `pending` → `running` → `ready` / `failed` |
 | `repository_files` | File path + sha/language/size under a selected repo |
 | `code_chunks` | Chunk text + inclusive start/end lines + nullable `embedding vector(1536)` |
 
@@ -39,6 +39,10 @@ Compose image: `pgvector/pgvector:pg16`. Migration `0005_pgvector` enables the e
 ## Embeddings (Day 20)
 
 `POST /github/selected-repo/embed` fills nullable embeddings via an OpenAI-compatible client. See [EMBEDDINGS.md](EMBEDDINGS.md).
+
+## Index job (Day 21)
+
+`POST /github/selected-repo/index` runs fetch → chunk → embed synchronously and ends in `ready` / `failed`. See [INDEX_JOBS.md](INDEX_JOBS.md).
 
 ## Apply
 
