@@ -180,7 +180,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 17** | File filter rules (documented + unit-tested) |
 | **Day 18** | Chunking with path + start/end line metadata |
 | **Day 19** | pgvector Compose image + embedding column |
-| **Next** | Embeddings / RAG pipeline |
+| **Day 20** | OpenAI-compatible embeddings for selected-repo chunks |
+| **Next** | Retriever / RAG ask API |
 | **Next** | Q&A UI, RAG endpoint, citations and source preview |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 

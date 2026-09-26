@@ -11,12 +11,14 @@ from sqlalchemy import select
 from app.deps import CurrentUser, DbSession
 from app.models import SelectedRepository
 from app.schemas.github import (
+    EmbedRepositoryResponse,
     FetchRepositoryContentsResponse,
     GitHubRepoListResponse,
     SelectedRepositoryEnvelope,
     SelectedRepositoryResponse,
     SelectRepositoryRequest,
 )
+from app.services.embed_repo import embed_selected_repository_chunks
 from app.services.fetch_repo import fetch_selected_repository_contents
 from app.services.github_api import get_repository_by_id, list_user_repositories
 from app.services.github_oauth import GitHubOAuthError
@@ -128,3 +130,22 @@ def fetch_selected_repo_contents(
     """
     result = fetch_selected_repository_contents(db, current_user.id)
     return FetchRepositoryContentsResponse.model_validate(result)
+
+
+@router.post(
+    "/selected-repo/embed",
+    response_model=EmbedRepositoryResponse,
+)
+def embed_selected_repo_chunks(
+    current_user: CurrentUser,
+    db: DbSession,
+    force: bool = False,
+) -> EmbedRepositoryResponse:
+    """
+    Generate OpenAI-compatible embeddings for fetched chunks and store them
+    in ``code_chunks.embedding``.
+
+    Pass ``force=true`` to re-embed chunks that already have vectors.
+    """
+    result = embed_selected_repository_chunks(db, current_user.id, force=force)
+    return EmbedRepositoryResponse.model_validate(result)

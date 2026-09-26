@@ -42,5 +42,5 @@ The test inserts three dummy vectors and asserts cosine distance (`<=>`) ranks t
 
 ## Next
 
-- Generate real embeddings for chunks
+- Generate embeddings for chunks — see [EMBEDDINGS.md](EMBEDDINGS.md)
 - Retriever query path for ask/RAG

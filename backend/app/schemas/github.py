@@ -94,3 +94,15 @@ class FetchRepositoryContentsResponse(BaseModel):
     chunk_count: int = 0
     skipped_over_cap: int = 0
     files: list[FetchedRepositoryFile] = Field(default_factory=list)
+
+
+class EmbedRepositoryResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    full_name: str
+    model: str
+    embedded: int
+    skipped_empty: int = 0
+    skipped_existing: int = 0
+    truncated: int = 0
+    force: bool = False

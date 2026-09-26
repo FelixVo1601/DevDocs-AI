@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     github_redirect_uri: str = "http://localhost:8001/auth/github/callback"
     github_oauth_scopes: str = "read:user repo"
 
+    # OpenAI-compatible embeddings (any base URL that implements /v1/embeddings).
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
+    embedding_model: str = "text-embedding-3-small"
+
     @property
     def is_development(self) -> bool:
         return self.environment.lower() in {"development", "dev", "local"}

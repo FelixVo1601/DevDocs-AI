@@ -23,7 +23,10 @@ def _unit_axis(index: int, dim: int = EMBEDDING_DIMENSIONS) -> list[float]:
 @pytest.fixture(scope="module")
 def engine():
     settings = get_settings()
-    eng = create_engine(sqlalchemy_database_url(settings.database_url))
+    eng = create_engine(
+        sqlalchemy_database_url(settings.database_url),
+        connect_args={"connect_timeout": 3},
+    )
     try:
         with eng.connect() as conn:
             conn.execute(text("SELECT 1"))
