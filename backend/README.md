@@ -114,6 +114,18 @@ curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/fe
 
 Use a **small** test repo. See [docs/INDEXING_SCHEMA.md](../docs/INDEXING_SCHEMA.md), [docs/FILE_FILTERS.md](../docs/FILE_FILTERS.md), and [docs/CHUNKING.md](../docs/CHUNKING.md).
 
+### Embed selected repository chunks
+
+Requires `OPENAI_API_KEY` (OpenAI-compatible). Writes `code_chunks.embedding`.
+
+```powershell
+curl.exe -s -b cookies.txt -X POST "http://localhost:8001/github/selected-repo/embed"
+# re-embed everything:
+curl.exe -s -b cookies.txt -X POST "http://localhost:8001/github/selected-repo/embed?force=true"
+```
+
+See [docs/EMBEDDINGS.md](../docs/EMBEDDINGS.md).
+
 ## Tests
 
 ```bash
@@ -123,10 +135,10 @@ pytest
 ```
 
 Covers ingestion path filters (`tests/test_repo_filters.py`), line-based chunking
-(`tests/test_chunking.py`), and pgvector setup (`tests/test_pgvector.py` — needs
-Postgres with migration `0005_pgvector` applied).
+(`tests/test_chunking.py`), pgvector setup (`tests/test_pgvector.py`), and
+embeddings (`tests/test_embeddings_client.py`, `tests/test_embed_repo.py`).
 
-See also [docs/PGVECTOR.md](../docs/PGVECTOR.md).
+See also [docs/PGVECTOR.md](../docs/PGVECTOR.md) and [docs/EMBEDDINGS.md](../docs/EMBEDDINGS.md).
 
 ## Migrations
 

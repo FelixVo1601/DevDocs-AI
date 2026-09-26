@@ -36,6 +36,10 @@ Caps: 150 files, 200KB per file (see [FILE_FILTERS.md](FILE_FILTERS.md)). Chunk 
 
 Compose image: `pgvector/pgvector:pg16`. Migration `0005_pgvector` enables the extension and adds `code_chunks.embedding`. See [PGVECTOR.md](PGVECTOR.md).
 
+## Embeddings (Day 20)
+
+`POST /github/selected-repo/embed` fills nullable embeddings via an OpenAI-compatible client. See [EMBEDDINGS.md](EMBEDDINGS.md).
+
 ## Apply
 
 ```bash
@@ -46,5 +50,4 @@ alembic upgrade head
 
 ## Next
 
-- Generate embeddings for chunks
 - Retriever + ask API with citations

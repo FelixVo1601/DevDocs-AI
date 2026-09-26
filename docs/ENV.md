@@ -33,6 +33,9 @@ The backend loads `.env` from `backend/` **or** the repo root (`../.env`).
 | `SESSION_COOKIE_NAME` | Backend | Auth cookie name (`devdocs_session`) |
 | `SESSION_EXPIRE_MINUTES` | Backend | Session lifetime |
 | `COOKIE_SECURE` | Backend | Set `true` only on HTTPS |
+| `OPENAI_API_KEY` | Backend | Bearer token for OpenAI-compatible embeddings |
+| `OPENAI_BASE_URL` | Backend | Embeddings API base (default `https://api.openai.com/v1`) |
+| `EMBEDDING_MODEL` | Backend | Model id (default `text-embedding-3-small`, 1536 dims) |
 
 ---
 
@@ -73,3 +76,11 @@ PUBLIC_API_URL=http://localhost:8001
 SvelteKit only exposes env vars prefixed with `PUBLIC_` to the browser.
 
 GitHub OAuth setup steps: [GITHUB_OAUTH.md](GITHUB_OAUTH.md).
+
+---
+
+## Embeddings
+
+`OPENAI_API_KEY` is required for `POST /github/selected-repo/embed`.  
+`OPENAI_BASE_URL` can point at any OpenAI-compatible provider.  
+Column width is fixed at 1536 — see [EMBEDDINGS.md](EMBEDDINGS.md) and [PGVECTOR.md](PGVECTOR.md).
