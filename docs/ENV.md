@@ -36,6 +36,7 @@ The backend loads `.env` from `backend/` **or** the repo root (`../.env`).
 | `OPENAI_API_KEY` | Backend | Bearer token for OpenAI-compatible embeddings |
 | `OPENAI_BASE_URL` | Backend | Embeddings API base (default `https://api.openai.com/v1`) |
 | `EMBEDDING_MODEL` | Backend | Model id (default `text-embedding-3-small`, 1536 dims) |
+| `CHAT_MODEL` | Backend | Chat model for `POST /ask` (default `gpt-4o-mini`) |
 
 ---
 
