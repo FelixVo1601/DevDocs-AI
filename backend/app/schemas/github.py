@@ -138,3 +138,30 @@ class IndexStatusResponse(BaseModel):
     embedded: int | None = None
     skipped_empty: int | None = None
     truncated: int | None = None
+
+
+class RetrieveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question: str = Field(min_length=1, max_length=4000)
+    k: int = Field(default=5, ge=1, le=20)
+
+
+class RetrievedChunk(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
+    chunk_index: int
+    start_line: int | None = None
+    end_line: int | None = None
+    content: str
+    distance: float
+
+
+class RetrieveResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    full_name: str
+    question: str
+    k: int
+    hits: list[RetrievedChunk] = Field(default_factory=list)

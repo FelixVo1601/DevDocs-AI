@@ -15,6 +15,8 @@ from app.schemas.github import (
     FetchRepositoryContentsResponse,
     GitHubRepoListResponse,
     IndexStatusResponse,
+    RetrieveRequest,
+    RetrieveResponse,
     SelectedRepositoryEnvelope,
     SelectedRepositoryResponse,
     SelectRepositoryRequest,
@@ -25,6 +27,7 @@ from app.services.github_api import get_repository_by_id, list_user_repositories
 from app.services.github_oauth import GitHubOAuthError
 from app.services.github_tokens import get_github_access_token
 from app.services.index_repo import get_index_status, index_selected_repository
+from app.services.retrieve import retrieve_similar_chunks
 
 logger = logging.getLogger(__name__)
 
@@ -180,3 +183,21 @@ def selected_repo_index_status(
     """Return the latest index job status for the selected repository."""
     result = get_index_status(db, current_user.id)
     return IndexStatusResponse.model_validate(result)
+
+
+@router.post(
+    "/selected-repo/retrieve",
+    response_model=RetrieveResponse,
+)
+def retrieve_selected_repo_chunks(
+    payload: RetrieveRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> RetrieveResponse:
+    """
+    Embed a question and return the top-k similar chunks for the selected repo.
+    """
+    result = retrieve_similar_chunks(
+        db, current_user.id, payload.question, k=payload.k
+    )
+    return RetrieveResponse.model_validate(result)

@@ -135,6 +135,16 @@ curl.exe -s -b cookies.txt http://localhost:8001/github/selected-repo/index-stat
 
 Status values: `pending` → `running` → `ready` / `failed`. See [docs/INDEX_JOBS.md](../docs/INDEX_JOBS.md).
 
+### Retrieve similar chunks
+
+```powershell
+curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/retrieve `
+  -H "Content-Type: application/json" `
+  -d "{\"question\":\"How does user login work?\",\"k\":5}"
+```
+
+See [docs/RETRIEVAL.md](../docs/RETRIEVAL.md).
+
 ## Tests
 
 ```bash
@@ -143,7 +153,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Covers filters, chunking, pgvector, embeddings, and index jobs (`tests/test_index_repo.py`).
+Covers filters, chunking, pgvector, embeddings, index jobs, and retrieval (`tests/test_retrieve.py`).
 
 ## Migrations
 
