@@ -82,6 +82,15 @@
 				<span class="dot" aria-hidden="true"></span>
 				Not connected
 			</p>
+			<p class="muted">
+				Connect GitHub to list repositories. Then select one, index it, and ask a question.
+			</p>
+			<ol class="steps">
+				<li>Connect GitHub</li>
+				<li>Select a repository</li>
+				<li>Index it until the status is ready</li>
+				<li>Ask a question</li>
+			</ol>
 			{#if github.error}
 				<p class="error" role="alert">{github.error}</p>
 			{/if}
@@ -111,7 +120,7 @@
 
 				<IndexPanel />
 			{:else}
-				<p class="muted">No repository selected yet. Pick one below.</p>
+				<p class="muted">No repository selected. Choose one below, then index it.</p>
 			{/if}
 			{#if github.selectError}
 				<p class="error" role="alert">{github.selectError}</p>
@@ -129,8 +138,13 @@
 				<p class="muted">Loading repositories…</p>
 			{:else if github.reposError}
 				<p class="error" role="alert">{github.reposError}</p>
+				<button type="button" class="secondary" onclick={() => void github.loadRepos()}>
+					Try again
+				</button>
+			{:else if github.repos.length === 0}
+				<p class="muted">This GitHub account has no repositories to list.</p>
 			{:else if filteredRepos.length === 0}
-				<p class="muted">No repositories match.</p>
+				<p class="muted">No repositories match “{filter.trim()}”.</p>
 			{:else}
 				<ul class="repo-list">
 					{#each filteredRepos as repo (repo.id)}
@@ -223,6 +237,13 @@
 	.muted {
 		color: #667;
 		font-size: 0.95rem;
+	}
+
+	.steps {
+		margin: 0.35rem 0 0.85rem;
+		padding-left: 1.2rem;
+		color: #445;
+		line-height: 1.55;
 	}
 
 	.error {

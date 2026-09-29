@@ -41,6 +41,15 @@
 				{counts.file_count} files · {counts.chunk_count} chunks · {counts.embedded_count} embedded
 			</p>
 		{/if}
+		{#if status === 'ready'}
+			<p class="next">
+				<a href="/app/ask">Ask a question</a> about this repository.
+			</p>
+		{:else if status === 'none'}
+			<p class="next">Index this repository before asking questions.</p>
+		{:else if status === 'failed'}
+			<p class="next">Fix the error, then index again. Asking stays closed until the status is ready.</p>
+		{/if}
 	{/if}
 
 	{#if errorText && (status === 'failed' || github.indexError)}
@@ -140,5 +149,15 @@
 
 	code {
 		font-size: 0.9em;
+	}
+
+	.next {
+		margin: 0.65rem 0 0;
+		color: #445;
+	}
+
+	.next a {
+		color: #17324d;
+		font-weight: 600;
 	}
 </style>

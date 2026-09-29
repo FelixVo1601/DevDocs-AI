@@ -188,7 +188,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 25** | Ask UI: question input and answer text |
 | **Day 26** | Citations UI: cited files under the answer |
 | **Day 27** | Cited source preview (read-only chunk panel) |
-| **Next** | Polish and MVP walkthrough |
+| **Day 28** | Happy-path polish: empty, loading, and basic error states |
+| **Next** | MVP walkthrough |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 
 ## Repository
