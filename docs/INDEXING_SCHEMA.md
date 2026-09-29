@@ -44,6 +44,10 @@ Compose image: `pgvector/pgvector:pg16`. Migration `0005_pgvector` enables the e
 
 `POST /github/selected-repo/index` runs fetch → chunk → embed synchronously and ends in `ready` / `failed`. See [INDEX_JOBS.md](INDEX_JOBS.md).
 
+## Retrieval (Day 23)
+
+`POST /github/selected-repo/retrieve` embeds a question and returns the top-k chunks. See [RETRIEVAL.md](RETRIEVAL.md).
+
 ## Apply
 
 ```bash
@@ -54,4 +58,5 @@ alembic upgrade head
 
 ## Next
 
-- Retriever + ask API with citations
+- Ask API that answers from retrieved chunks
+- Citations in the UI

@@ -183,8 +183,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 20** | OpenAI-compatible embeddings for selected-repo chunks |
 | **Day 21** | Index job trigger + status (`ready` / `failed`) |
 | **Day 22** | Index status UI (button, status, errors) |
-| **Next** | Retriever / RAG ask API |
-| **Next** | Q&A UI, RAG endpoint, citations and source preview |
+| **Day 23** | Semantic retrieval (embed question → top-k chunks) |
+| **Next** | Ask API and Q&A UI with citations |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 
 ## Repository
