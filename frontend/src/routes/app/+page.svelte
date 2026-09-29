@@ -3,6 +3,7 @@
 	import { replaceState } from '$app/navigation';
 	import { auth } from '$lib/auth.svelte';
 	import { github } from '$lib/github.svelte';
+	import AppNav from '$lib/AppNav.svelte';
 	import IndexPanel from '$lib/IndexPanel.svelte';
 
 	const flashMessages: Record<string, string> = {
@@ -50,6 +51,7 @@
 </script>
 
 <main>
+	<AppNav />
 	<h1>App</h1>
 	<p>Signed in as <strong>{auth.user?.email}</strong>.</p>
 

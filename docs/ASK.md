@@ -39,3 +39,7 @@ Uses the same OpenAI-compatible base as embeddings:
 2. Those excerpts are placed in the user prompt with `[n] path:start-end (chunk id)` labels
 3. `POST /chat/completions` returns the answer
 4. The same chunks are returned as `citations` (path + chunk id), independent of how the model phrases the answer
+
+## UI
+
+Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved. The selected repository is the one chosen on `/app`.
