@@ -43,6 +43,6 @@ Uses the same OpenAI-compatible base as embeddings:
 
 ## UI
 
-Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved.
+Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved. The form stays closed until GitHub is connected, a repository is selected, and its index status is `ready`. Otherwise the page explains the blocker (not connected, not indexed, indexing, or index failed) and links back to Repositories. A failed ask shows the API error plus a short next step.
 
 Under the answer, **Sources** lists each citation: file path, line range, and `chunk_id`. `[n]` markers in the answer and the source titles open a read-only **Source preview** of that chunk’s code (MVP success criterion: open and inspect the cited source).

@@ -7,6 +7,7 @@
 		splitAnswerCitations,
 		type Citation
 	} from '$lib/citations';
+	import { askFailureHelp, askPageNotice } from '$lib/flow';
 	import { github } from '$lib/github.svelte';
 
 	type AskResponse = {
@@ -29,8 +30,21 @@
 
 	$effect(() => {
 		if (!auth.user) return;
-		void github.loadSelected();
+		void github.refresh();
 	});
+
+	const notice = $derived(
+		askPageNotice({
+			connectionKnown: github.connection !== null,
+			connected: github.connection?.connected === true,
+			selectedLoading: github.selectedLoading,
+			fullName: github.selected?.full_name ?? null,
+			indexing: github.indexing,
+			jobStatus: github.indexStatus?.job?.status,
+			indexError: github.indexError,
+			hasIndexPayload: github.indexStatus !== null
+		})
+	);
 
 	const focused = $derived(
 		result?.citations.find((citation) => citation.chunk_id === focusedId) ?? null
@@ -69,41 +83,58 @@
 <main>
 	<AppNav />
 	<h1>Ask</h1>
-	<p class="muted">
-		{#if github.selected}
-			Questions use <strong>{github.selected.full_name}</strong>. Index it first if you have not already.
-		{:else if github.selectedLoading}
-			Loading selected repository…
-		{:else}
-			Select a repository on <a href="/app">Repositories</a> before asking.
+	{#if notice}
+		<section
+			class="notice"
+			class:err={notice.tone === 'error'}
+			role={notice.tone === 'error' ? 'alert' : 'status'}
+			aria-labelledby="ask-notice-heading"
+		>
+			<h2 id="ask-notice-heading">{notice.title}</h2>
+			<p>{notice.detail}</p>
+			{#if notice.href && notice.linkLabel}
+				<p class="notice-action"><a href={notice.href}>{notice.linkLabel}</a></p>
+			{/if}
+		</section>
+	{:else}
+		<p class="muted">
+			Asking about <strong>{github.selected?.full_name}</strong>. The index status is ready.
+		</p>
+
+		<form onsubmit={submit}>
+			<label>
+				Question
+				<textarea
+					name="question"
+					rows="4"
+					bind:value={question}
+					placeholder="How does login work?"
+					disabled={asking}
+					required
+				></textarea>
+			</label>
+			<button type="submit" disabled={asking}>
+				{asking ? 'Asking…' : 'Ask'}
+			</button>
+		</form>
+
+		{#if asking}
+			<p class="muted" role="status">Searching the index and writing an answer…</p>
 		{/if}
-	</p>
 
-	<form onsubmit={submit}>
-		<label>
-			Question
-			<textarea
-				name="question"
-				rows="4"
-				bind:value={question}
-				placeholder="How does login work?"
-				disabled={asking}
-				required
-			></textarea>
-		</label>
-		<button type="submit" disabled={asking || !github.selected}>
-			{asking ? 'Asking…' : 'Ask'}
-		</button>
-	</form>
-
-	{#if error}
-		<p class="error" role="alert">{error}</p>
+		{#if error}
+			<p class="error" role="alert">{error}</p>
+			<p class="muted">{askFailureHelp(error)}</p>
+		{/if}
 	{/if}
 
 	{#if result}
 		<section class="answer" aria-live="polite" aria-labelledby="answer-heading">
 			<h2 id="answer-heading">Answer</h2>
 			<p class="asked">Asked: {result.question}</p>
+			{#if !result.answer.trim()}
+				<p class="muted">The model returned an empty answer. Try asking in different words.</p>
+			{/if}
 			<div class="answer-text">
 				{#each answerParts as part, i (i)}
 					{#if part.kind === 'text'}
@@ -216,6 +247,33 @@
 	button:disabled {
 		opacity: 0.7;
 		cursor: wait;
+	}
+
+	.notice {
+		margin-top: 1.25rem;
+		padding: 1.25rem 1.35rem;
+		border: 1px solid #dde1e6;
+		border-radius: 0.5rem;
+		background: #fff;
+	}
+
+	.notice p {
+		margin: 0;
+		color: #445;
+		line-height: 1.5;
+	}
+
+	.notice.err {
+		border-color: #f3c2c2;
+		background: #fde8e8;
+	}
+
+	.notice.err p {
+		color: #9b1c1c;
+	}
+
+	.notice-action {
+		margin-top: 0.75rem !important;
 	}
 
 	.error {
