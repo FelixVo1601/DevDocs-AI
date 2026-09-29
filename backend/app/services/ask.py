@@ -94,6 +94,7 @@ def ask_question(
             "start_line": hit["start_line"],
             "end_line": hit["end_line"],
             "distance": hit["distance"],
+            "content": hit["content"],
         }
         for hit in hits
     ]
