@@ -145,17 +145,16 @@ class GitHubState {
 		}
 	}
 
-	async loadIndexStatus(): Promise<void> {
+	async loadIndexStatus(options?: { keepError?: boolean }): Promise<void> {
 		if (!this.selected) {
 			this.indexStatus = null;
 			return;
 		}
 		this.indexLoading = true;
-		this.indexError = null;
+		if (!options?.keepError) this.indexError = null;
 		try {
 			this.indexStatus = await apiGet<IndexStatus>('/github/selected-repo/index-status');
 		} catch (err) {
-			this.indexStatus = null;
 			this.indexError =
 				err instanceof ApiError ? err.message : 'Could not load index status.';
 		} finally {
@@ -171,9 +170,8 @@ class GitHubState {
 				method: 'POST'
 			});
 		} catch (err) {
-			this.indexError =
-				err instanceof ApiError ? err.message : 'Indexing failed.';
-			await this.loadIndexStatus();
+			this.indexError = err instanceof ApiError ? err.message : 'Indexing failed.';
+			await this.loadIndexStatus({ keepError: true });
 		} finally {
 			this.indexing = false;
 		}
