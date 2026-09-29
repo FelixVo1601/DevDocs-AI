@@ -34,7 +34,7 @@ DevDocs AI connects to a developer’s GitHub account, indexes a selected reposi
 |------|------------|
 | **Authentication** | Register, log in, log out; protected application pages |
 | **GitHub** | Connect GitHub account; list and select repositories |
-| **Repository processing** | Clone/retrieve repo; filter supported files; chunk source for indexing |
+| **Repository processing** | Retrieve the selected repo (GitHub Trees and Blobs); filter files; chunk source |
 | **AI / RAG** | Embeddings, vector storage, semantic search, grounded answers |
 | **Experience** | Ask questions; view answers with source citations and cited code |
 
@@ -49,15 +49,13 @@ See [docs/MVP.md](docs/MVP.md) for the full Version 1 scope and explicit out-of-
 | Database | PostgreSQL + pgvector | Users, sessions, repository metadata, chunk embeddings |
 | Vector store | pgvector (same DB) | `code_chunks.embedding vector(1536)` |
 | Auth | App auth + GitHub OAuth | Login and GitHub access |
-| LLM / embeddings | OpenAI-compatible API (configurable; post–Week 1) | Embeddings and answer generation |
+| LLM / embeddings | OpenAI-compatible API | Embeddings (`text-embedding-3-small`, 1536 dimensions) and answers (`gpt-4o-mini`) |
 | Source control API | GitHub API | List repos, fetch repository content |
-| Local env | Docker Compose | Consistent frontend, backend, and database |
+| Local database | Docker Compose | PostgreSQL 16 with pgvector. The API and UI run on the host, not in Compose |
 
-See [docs/DECISIONS.md](docs/DECISIONS.md) for why these were chosen. Exact library versions will be locked in as implementation begins.
+See [docs/DECISIONS.md](docs/DECISIONS.md) for why these were chosen. Library versions are pinned in `frontend/package.json` and `backend/requirements.txt`.
 
 ## High-level architecture
-
-Week 1 skeleton (AI pipeline not implemented yet):
 
 ```text
                     ┌───────────────┐
@@ -78,9 +76,9 @@ Week 1 skeleton (AI pipeline not implemented yet):
        └───────────────┘
 ```
 
-Full design (including the later ingestion → embed → retrieve → LLM path) is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Ingestion, embeddings, retrieval, and the ask path are described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-**Happy path (target product):**
+**Happy path:**
 
 1. User registers/logs in and connects GitHub.
 2. User selects a repository; the app retrieves and filters source files.
@@ -95,22 +93,54 @@ Full design (including the later ingestion → embed → retrieve → LLM path) 
 DevDocs-AI/
 ├── frontend/          # SvelteKit + TypeScript
 ├── backend/           # FastAPI
-├── docs/              # MVP, architecture, decisions, ENV, indexing schema
+├── docs/              # MVP, architecture, env, and the smoke checklist
 ├── scripts/           # One-command local start (dev.ps1 / dev.sh)
 ├── docker-compose.yml # PostgreSQL
 ├── .env.example       # Root env template
 └── README.md
 ```
 
-## How to run (auth end-to-end)
+## Local setup
 
 ### Prerequisites
 
-- Docker Desktop (for Postgres)
+- Docker Desktop (Postgres only)
 - Node.js 20+ and npm
 - Python 3.11+
 
-### Option A — one command
+### 1. Environment
+
+From the repo root:
+
+```bash
+cp .env.example .env                    # Windows: copy .env.example .env
+cp frontend/.env.example frontend/.env
+```
+
+The API reads `.env` from `backend/` or the repo root. The browser reads `frontend/.env`. Never commit either file.
+
+Set these in the **root** `.env` before connecting GitHub or indexing. Restart the API after any edit (`get_settings()` is cached until the process restarts).
+
+| Variable | Required for | Local value |
+|----------|----------------|-------------|
+| `DATABASE_URL` | API and migrations | `postgresql://devdocs:change_me@localhost:5432/devdocs` (already in the example; must match Compose) |
+| `SECRET_KEY` | GitHub token encryption and OAuth state | A long random string. Empty is rejected |
+| `GITHUB_CLIENT_ID` | **Connect GitHub** | From a GitHub OAuth App |
+| `GITHUB_CLIENT_SECRET` | **Connect GitHub** | Same app. Never log or commit it |
+| `GITHUB_REDIRECT_URI` | OAuth callback | `http://localhost:8001/auth/github/callback` (must match the OAuth App) |
+| `OPENAI_API_KEY` | Index embeddings and **Ask** | OpenAI-compatible bearer token |
+| `OPENAI_BASE_URL` | Embeddings and chat | `https://api.openai.com/v1` unless you use another compatible host |
+| `EMBEDDING_MODEL` | Index | `text-embedding-3-small` (vectors are 1536-wide) |
+| `CHAT_MODEL` | Ask | `gpt-4o-mini` |
+| `PUBLIC_API_URL` | Browser, in `frontend/.env` | `http://localhost:8001` |
+| `FRONTEND_URL` | CORS and OAuth return | `http://localhost:5173` |
+| `COOKIE_SECURE` | Session cookie | `false` on local HTTP |
+
+OAuth App homepage `http://localhost:5173`, callback `http://localhost:8001/auth/github/callback`. Steps: [docs/GITHUB_OAUTH.md](docs/GITHUB_OAUTH.md). Every variable: [docs/ENV.md](docs/ENV.md).
+
+`scripts/dev.ps1` and `scripts/dev.sh` copy the example env files only when they are missing. Fill the secrets before the first start, or edit `.env` and restart the API.
+
+### 2. Start
 
 **Windows (PowerShell), from the repo root:**
 
@@ -125,19 +155,17 @@ chmod +x scripts/dev.sh
 ./scripts/dev.sh
 ```
 
-This copies missing env files, starts Postgres, migrates the DB, then opens API + UI terminals/processes.
+That starts Postgres (`pgvector/pgvector:pg16`, container `devdocs-db`), creates `backend/.venv` if needed, installs API dependencies, runs `alembic upgrade head`, then starts:
 
-### Option B — manual
+| Process | Address |
+|---------|---------|
+| API | http://127.0.0.1:8001 (`uvicorn app.main:app --reload`) |
+| UI | http://localhost:5173 |
+
+**Manual equivalent:**
 
 ```bash
-# 1) Env
-cp .env.example .env                    # Windows: copy .env.example .env
-cp frontend/.env.example frontend/.env
-
-# 2) Database
 docker compose up -d db
-
-# 3) Backend
 cd backend
 python -m venv .venv
 # Windows: .\.venv\Scripts\Activate.ps1
@@ -145,23 +173,50 @@ python -m venv .venv
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+```
 
-# 4) Frontend (new terminal)
+```bash
 cd frontend
 npm install
 npm run dev -- --host localhost --port 5173
 ```
 
-### Verify auth (no CORS hacks)
+Port 8000 is often unavailable on Windows; the app uses **8001**.
 
-1. Open **http://localhost:5173** (use `localhost`, not `127.0.0.1`, so the session cookie matches `PUBLIC_API_URL`).
-2. Register at `/register`, then open `/app` (protected).
-3. Refresh — you should stay signed in.
-4. Log out — `/app` should send you back to login.
+### 3. Confirm the stack
 
-API docs: http://localhost:8001/docs · Health: http://localhost:8001/health
+```bash
+python scripts/smoke.py
+```
 
-CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) with `allow_credentials=True`. Full variable reference: [docs/ENV.md](docs/ENV.md).
+Expect `smoke ok`. That covers health, Postgres, register/login/logout, and the “not connected” / “no repository” API errors. It does not index a repo. The matching checklist is [docs/SMOKE.md](docs/SMOKE.md).
+
+- Health: http://localhost:8001/health → `{"status":"ok"}`
+- DB: http://localhost:8001/db/ping → `{"database":"ok"}`
+- API docs: http://localhost:8001/docs
+
+Open the UI at **http://localhost:5173** (not `127.0.0.1`). The session cookie is `devdocs_session` (HttpOnly). In development, CORS allows `http://localhost:<port>` and `http://127.0.0.1:<port>` with credentials.
+
+### Demo walkthrough
+
+1. Register at http://localhost:5173/register (password at least 8 characters). You land on `/app`.
+2. **Repositories** shows **Not connected** and **Connect GitHub**. **Ask** says **GitHub is not connected** and has no question box.
+3. Connect GitHub and authorize. `/app` shows **GitHub connected successfully.** and **Connected as** your login.
+4. Select a small repository you can access (at most 150 files are indexed; files over 200 KB are skipped).
+5. **Index repository**. Wait on that request. Status goes **running**, then **ready** (“This repository is indexed and ready to search.”). **Ask a question** appears.
+6. On **Ask**, the form says the index status is ready. Ask something about that repo. **Answer** and **Sources** appear (`[n] path`, line range, chunk id).
+7. Click a source or an `[n]` marker. **Source preview** shows that chunk, read-only.
+8. **Log out**. `/app` sends you back to login.
+
+If indexing fails, the panel shows status **failed** and the error. Ask stays closed until status is **ready**.
+
+Backend tests (Postgres must be up; DB tests skip when it is not):
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
 
 ## Development roadmap
 
@@ -189,7 +244,7 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 26** | Citations UI: cited files under the answer |
 | **Day 27** | Cited source preview (read-only chunk panel) |
 | **Day 28** | Happy-path polish: empty, loading, and basic error states |
-| **Next** | MVP walkthrough |
+| **Day 29** | Local setup, demo walkthrough, and smoke checklist |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 
 ## Repository

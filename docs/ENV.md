@@ -82,6 +82,7 @@ GitHub OAuth setup steps: [GITHUB_OAUTH.md](GITHUB_OAUTH.md).
 
 ## Embeddings
 
-`OPENAI_API_KEY` is required for `POST /github/selected-repo/embed`.  
+`OPENAI_API_KEY` is required to index a repository and to answer a question (`POST /github/selected-repo/index` embeds chunks; `POST /ask` embeds the question and calls the chat model).  
 `OPENAI_BASE_URL` can point at any OpenAI-compatible provider.  
-Column width is fixed at 1536 — see [EMBEDDINGS.md](EMBEDDINGS.md) and [PGVECTOR.md](PGVECTOR.md).
+Column width is fixed at 1536 — see [EMBEDDINGS.md](EMBEDDINGS.md) and [PGVECTOR.md](PGVECTOR.md).  
+Restart the API after changing `.env`. Settings are cached for the process lifetime.
