@@ -186,7 +186,8 @@ CORS is configured on the API (`CORS_ORIGINS` + development localhost regex) wit
 | **Day 23** | Semantic retrieval (embed question → top-k chunks) |
 | **Day 24** | RAG `POST /ask` with path + chunk id citations |
 | **Day 25** | Ask UI: question input and answer text |
-| **Next** | Citation display in the Q&A UI |
+| **Day 26** | Citations UI: cited files under the answer |
+| **Next** | Source preview for a focused citation |
 | **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
 
 ## Repository
