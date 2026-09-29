@@ -5,6 +5,7 @@ export type Citation = {
 	start_line: number | null;
 	end_line: number | null;
 	distance: number;
+	content: string;
 };
 
 export type AnswerPart = { kind: 'text'; text: string } | { kind: 'cite'; index: number };

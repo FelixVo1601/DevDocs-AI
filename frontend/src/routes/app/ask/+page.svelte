@@ -32,12 +32,16 @@
 		void github.loadSelected();
 	});
 
+	const focused = $derived(
+		result?.citations.find((citation) => citation.chunk_id === focusedId) ?? null
+	);
+
 	function focusCitation(chunkId: string) {
 		focusedId = chunkId;
 		queueMicrotask(() => {
-			const el = document.getElementById(`citation-${chunkId}`);
-			el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-			if (el instanceof HTMLElement) el.focus();
+			const preview = document.getElementById('source-preview');
+			preview?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			if (preview instanceof HTMLElement) preview.focus();
 		});
 	}
 
@@ -143,6 +147,18 @@
 				</ol>
 			{/if}
 		</section>
+
+		<section class="preview" id="source-preview" tabindex="-1" aria-labelledby="preview-heading">
+			<h2 id="preview-heading">Source preview</h2>
+			{#if focused}
+				<p class="meta">
+					{focused.path} · {citationLineLabel(focused)}
+				</p>
+				<pre><code>{focused.content}</code></pre>
+			{:else}
+				<p class="muted">Click a citation to inspect the cited source.</p>
+			{/if}
+		</section>
 	{/if}
 </main>
 
@@ -211,7 +227,8 @@
 	}
 
 	.answer,
-	.citations {
+	.citations,
+	.preview {
 		margin-top: 1.5rem;
 		padding: 1.25rem 1.35rem;
 		border: 1px solid #dde1e6;
@@ -289,6 +306,22 @@
 
 	code {
 		font-size: 0.85em;
+	}
+
+	.preview pre {
+		margin: 0.75rem 0 0;
+		padding: 0.85rem 1rem;
+		overflow: auto;
+		border-radius: 0.4rem;
+		background: #f6f8fa;
+		border: 1px solid #e4e8ec;
+		white-space: pre;
+		line-height: 1.45;
+	}
+
+	.preview:focus {
+		outline: 2px solid #17324d;
+		outline-offset: 2px;
 	}
 
 	a {

@@ -159,5 +159,6 @@ def test_ask_returns_grounded_answer_with_citations(db_session: Session) -> None
     top = result["citations"][0]
     assert top["path"] == "src/auth/login.py"
     assert top["chunk_id"] == str(login_chunk.id)
+    assert "def login" in top["content"]
     assert any(item["path"] == "src/auth/login.py" for item in result["citations"])
     assert "src/auth/login.py" in chat.seen[0]

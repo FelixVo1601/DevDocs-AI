@@ -22,6 +22,7 @@ Response:
 | `citations[].path` | Repository file path |
 | `citations[].chunk_id` | `code_chunks.id` |
 | `citations[].start_line` / `end_line` | Inclusive line range |
+| `citations[].content` | Cited chunk text for the read-only preview |
 
 ## Env
 
@@ -44,4 +45,4 @@ Uses the same OpenAI-compatible base as embeddings:
 
 Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved.
 
-Under the answer, **Sources** lists each citation: file path, line range, and `chunk_id`. `[n]` markers in the answer and the source titles focus that citation (highlight and move keyboard focus to it).
+Under the answer, **Sources** lists each citation: file path, line range, and `chunk_id`. `[n]` markers in the answer and the source titles open a read-only **Source preview** of that chunk’s code (MVP success criterion: open and inspect the cited source).

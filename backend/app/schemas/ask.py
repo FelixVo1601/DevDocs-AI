@@ -19,6 +19,7 @@ class Citation(BaseModel):
     start_line: int | None = None
     end_line: int | None = None
     distance: float
+    content: str
 
 
 class AskResponse(BaseModel):
