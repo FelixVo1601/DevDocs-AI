@@ -150,6 +150,7 @@ class RetrieveRequest(BaseModel):
 class RetrievedChunk(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    chunk_id: str
     path: str
     chunk_index: int
     start_line: int | None = None

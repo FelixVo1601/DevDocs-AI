@@ -48,6 +48,10 @@ Compose image: `pgvector/pgvector:pg16`. Migration `0005_pgvector` enables the e
 
 `POST /github/selected-repo/retrieve` embeds a question and returns the top-k chunks. See [RETRIEVAL.md](RETRIEVAL.md).
 
+## Ask (Day 24)
+
+`POST /ask` retrieves chunks, prompts the chat model, and returns the answer plus citations (`path`, `chunk_id`). See [ASK.md](ASK.md).
+
 ## Apply
 
 ```bash
@@ -58,5 +62,4 @@ alembic upgrade head
 
 ## Next
 
-- Ask API that answers from retrieved chunks
-- Citations in the UI
+- Q&A UI that shows the answer and citations

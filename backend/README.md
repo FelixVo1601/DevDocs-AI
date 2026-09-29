@@ -145,6 +145,16 @@ curl.exe -s -b cookies.txt -X POST http://localhost:8001/github/selected-repo/re
 
 See [docs/RETRIEVAL.md](../docs/RETRIEVAL.md).
 
+### Ask (retrieve + LLM)
+
+```powershell
+curl.exe -s -b cookies.txt -X POST http://localhost:8001/ask `
+  -H "Content-Type: application/json" `
+  -d "{\"question\":\"How does user login work?\",\"k\":5}"
+```
+
+Citations include `path` and `chunk_id`. See [docs/ASK.md](../docs/ASK.md).
+
 ## Tests
 
 ```bash
@@ -153,7 +163,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Covers filters, chunking, pgvector, embeddings, index jobs, and retrieval (`tests/test_retrieve.py`).
+Covers filters, chunking, pgvector, embeddings, index jobs, retrieval, and ask (`tests/test_ask.py`).
 
 ## Migrations
 

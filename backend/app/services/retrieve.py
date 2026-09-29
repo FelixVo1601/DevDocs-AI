@@ -97,6 +97,7 @@ def retrieve_similar_chunks(
 
     hits = [
         {
+            "chunk_id": str(chunk.id),
             "path": path,
             "chunk_index": chunk.chunk_index,
             "start_line": chunk.start_line,

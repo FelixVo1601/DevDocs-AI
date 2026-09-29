@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     embedding_model: str = "text-embedding-3-small"
+    chat_model: str = "gpt-4o-mini"
 
     @property
     def is_development(self) -> bool:
