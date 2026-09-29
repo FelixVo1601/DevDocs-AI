@@ -1,5 +1,7 @@
 # DevDocs AI
 
+**MVP v1** (git tag `mvp-v1`). Frozen: log in, connect GitHub, select a repository, index it, ask, see citations, and open the cited source. Later ideas are in [docs/BACKLOG.md](docs/BACKLOG.md) and are not part of this version.
+
 AI-powered developer knowledge and documentation assistant.
 
 Developers ask natural-language questions about a GitHub repository and receive answers grounded in the actual source code, with citations back to the files that support each answer.
@@ -38,7 +40,7 @@ DevDocs AI connects to a developer’s GitHub account, indexes a selected reposi
 | **AI / RAG** | Embeddings, vector storage, semantic search, grounded answers |
 | **Experience** | Ask questions; view answers with source citations and cited code |
 
-See [docs/MVP.md](docs/MVP.md) for the full Version 1 scope and explicit out-of-scope items.
+See [docs/MVP.md](docs/MVP.md) for the frozen Version 1 scope. Post-MVP ideas are in [docs/BACKLOG.md](docs/BACKLOG.md) and are out of scope.
 
 ## Technology stack
 
@@ -245,7 +247,7 @@ pytest
 | **Day 27** | Cited source preview (read-only chunk panel) |
 | **Day 28** | Happy-path polish: empty, loading, and basic error states |
 | **Day 29** | Local setup, demo walkthrough, and smoke checklist |
-| **Later (post-MVP)** | Agents, auto PRs, multi-provider LLMs, teams, analytics, billing, mobile |
+| **Day 30** | MVP v1 freeze (`mvp-v1`); post-MVP ideas in `docs/BACKLOG.md` |
 
 ## Repository
 
