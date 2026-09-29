@@ -25,7 +25,7 @@ settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     description="AI-powered developer knowledge and documentation assistant API",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 

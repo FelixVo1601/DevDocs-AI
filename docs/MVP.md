@@ -1,6 +1,8 @@
 # MVP — DevDocs AI (Version 1)
 
-This document defines what belongs in Version 1 and what is explicitly out of scope. It is the scope contract for the first shippable product.
+**MVP v1 is frozen.** Git tag `mvp-v1`. A signed-in user can log in, connect GitHub, select a repository, index it, ask a question, read citations, and open the cited source. That path is the demo in [SMOKE.md](SMOKE.md).
+
+This document is the scope contract. Ideas after v1 live in [BACKLOG.md](BACKLOG.md) and are out of scope until this document is explicitly revised.
 
 ---
 
@@ -94,4 +96,4 @@ Version 1 is considered successful when a signed-in user can:
 4. Receive an answer with visible citations.
 5. Open and inspect the cited source.
 
-Anything beyond that list belongs in a later phase unless this document is explicitly revised.
+Those five steps are the MVP v1 demo. Anything beyond that list is out of scope. Later ideas are collected in [BACKLOG.md](BACKLOG.md) and are not part of v1.
