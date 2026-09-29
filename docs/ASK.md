@@ -42,4 +42,6 @@ Uses the same OpenAI-compatible base as embeddings:
 
 ## UI
 
-Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved. The selected repository is the one chosen on `/app`.
+Signed-in users open **Ask** at `/app/ask`: type a question, submit, and the `answer` string from `POST /ask` is shown with line breaks preserved.
+
+Under the answer, **Sources** lists each citation: file path, line range, and `chunk_id`. `[n]` markers in the answer and the source titles focus that citation (highlight and move keyboard focus to it).
